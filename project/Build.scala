@@ -16,10 +16,10 @@ object BuildSettings {
 
   val buildHomepage             = Some(url("http://www.coiney.com"))
   val buildStartYear            = Some(2014)
-  val buildDescription          = "A frame for scala projects"
-  val buildLicense              = Seq("MIT" -> url("http://opensource.org/licenses/MIT"))
+  val buildDescription          = "An asynchronous scala client for RabbitMQ, based on Akka."
+  val buildLicense              = Seq("BSD" -> url("http://opensource.org/licenses/BSD-3-Clause"))
 
-  val buildOrganizationName     = "coiney.io"
+  val buildOrganizationName     = "coiney.com"
   val buildOrganization         = "com.coiney"
   val buildOrganizationHomepage = Some(url("http://coiney.com"))
 
@@ -103,8 +103,6 @@ object Scalabuild extends Build {
     scalamock,
     scalacheck,
     akkatest
-    // slicktest,
-    // spraytest
   )
 
   val commonDeps = Seq(
@@ -113,15 +111,6 @@ object Scalabuild extends Build {
     akkaactor,
     akkaslf4j,
     rabbitmq
-    // playjson,
-    // slick,
-    // spraycan,
-    // sprayhttp,
-    // sprayhttpx,
-    // sprayutil,
-    // sprayclient,
-    // sprayroute,
-    // spraycache
   )
 
   val commonResolvers = Seq(
@@ -142,38 +131,40 @@ object Scalabuild extends Build {
 
   val publishSettings: Seq[Setting[_]] = Seq(
     publishTo := {
-      val nexus = "https://oss.sonatype.org/"
+      val nexus = "http://archives.coiney.com:8888"
       if (isSnapshot.value)
-        Some("snapshots" at nexus + "content/repositories/snapshots")
+        Some("snapshots" at nexus + "/repository/snapshots/")
       else
-        Some("releases" at nexus + "service/local/staging/deploy/maven2")
+        Some("releases" at nexus + "/repository/release/")
     },
     publishMavenStyle := true,
     publishArtifact in Test := false,
-    pomIncludeRepository := { x => false },
+    pomIncludeRepository := { _ => false },
+    credentials += Credentials(Path.userHome / ".ivy2" / ".credentials_coiney_snapshots"),
+    credentials += Credentials(Path.userHome / ".ivy2" / ".credentials_coiney_release"),
     pomExtra :=
-      <url>https://github.com/pjan/akka-patterns</url>
-        <licenses>
-          <license>
-            <name>MIT</name>
-            <url>http://opensource.org/licenses/MIT</url>
-            <distribution>repo</distribution>
-          </license>
-        </licenses>
-        <scm>
-          <url>git@github.com:pjan/akka-patterns.git</url>
-          <connection>scm:git:git@github.com:pjan/akka-patterns.git</connection>
-        </scm>
-        <developers>
-          <developer>
-            <id>pjan</id>
-            <name>pjan vandaele</name>
-            <url>http://pjan.io</url>
-          </developer>
-        </developers>
+      <url>https://github.com/coiney/akka-rabbit</url>
+      <licenses>
+        <license>
+          <name>BSD</name>
+          <url>http://opensource.org/licenses/BSD-3-Clause</url>
+          <distribution>repo</distribution>
+        </license>
+      </licenses>
+      <scm>
+        <url>git@github.com:coiney/akka-rabbit.git</url>
+        <connection>scm:git:git@github.com:coiney/akka-rabbit.git</connection>
+      </scm>
+      <developers>
+        <developer>
+          <id>pjan</id>
+          <name>pjan vandaele</name>
+          <url>http://pjan.io</url>
+        </developer>
+      </developers>
   )
 
-  val sharedSettings = baseSettings ++ buildSettings ++ publishSettings ++ unidocSettings ++ scoverageSettings ++ coverallsSettings ++ Seq(
+val sharedSettings = baseSettings ++ buildSettings ++ publishSettings ++ unidocSettings ++ scoverageSettings ++ coverallsSettings ++ Seq(
     libraryDependencies ++= (testDeps ++ commonDeps),
     resolvers ++= commonResolvers,
     scalacOptions ++= Seq("-encoding", "utf8"),
@@ -194,8 +185,7 @@ object Scalabuild extends Build {
     publish := { },
     publishLocal := { }
   ).aggregate(
-    akkaRabbitCore,
-    akkaRabbitExample
+    akkaRabbitCore
   )
 
   lazy val akkaRabbitCore = module(
@@ -207,6 +197,8 @@ object Scalabuild extends Build {
     "example",
     sharedSettings
   ).settings(
+    publish := { },
+    publishLocal := { }
   ).dependsOn(
     akkaRabbitCore % "test->test;compile->compile"
   )
