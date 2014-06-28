@@ -31,7 +31,7 @@ trait RabbitFactory {
   def setSharedExecutor(executor: ExecutorService): Unit =
     connectionFactory.setSharedExecutor(executor)
 
-  def createConnection(): ActorRef =
+  def createConnection(name: Option[String] = None): ActorRef =
     actorRefFactory.actorOf(actors.ConnectionKeeper.props(connectionFactory))
 
   def createProducer(connectionKeeper: ActorRef, name: Option[String] = None, timeout: FiniteDuration = 5000.millis): ActorRef = {
