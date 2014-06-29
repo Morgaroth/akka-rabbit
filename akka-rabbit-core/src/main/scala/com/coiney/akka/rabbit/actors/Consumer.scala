@@ -62,6 +62,7 @@ class Consumer(listener: ActorRef, autoAck: Boolean = false) extends ChannelKeep
   }
 
   override def channelCallback(channel: Channel): Unit = {
+    super.channelCallback(channel)
     consumer = Some(
       new DefaultConsumer(channel){
         override def handleDelivery(consumerTag: String, envelope: Envelope, properties: AMQP.BasicProperties, body: Array[Byte]): Unit =
