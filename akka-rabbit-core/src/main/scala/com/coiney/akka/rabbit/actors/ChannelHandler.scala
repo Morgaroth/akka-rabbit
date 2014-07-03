@@ -45,7 +45,7 @@ private[rabbit] class ChannelHandler(channel: Channel) extends Actor
       sender ! handleRequest(req){ () =>
         channel.addShutdownListener(new ShutdownListener {
           override def shutdownCompleted(cause: ShutdownSignalException): Unit =
-            listener ! ChannelKeeper.Shutdown(cause)
+            listener ! HandleShutdown(cause)
         })
       }
 

@@ -1,7 +1,7 @@
 package com.coiney.akka.rabbit
 
 import akka.actor.ActorRef
-import com.rabbitmq.client.{AMQP, Envelope}
+import com.rabbitmq.client.{ShutdownSignalException, AMQP, Envelope}
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -49,13 +49,14 @@ package object messages {
   case class DisconnectedError(request: Request) extends Response
 
 
-  case class HandleDelivery(consumerTag: String, envelope: Envelope, properties: AMQP.BasicProperties, body: Array[Byte])
-  case class HandleCancel(consumerTag: String)
-
   case class HandleAck(deliveryTag: Long, multiple: Boolean)
   case class HandleNack(deliveryTag: Long, multiple: Boolean)
 
   case class HandleReturn(replyCode: Int, replyText: String, exchange: String, routingKey: String, properties: AMQP.BasicProperties, body: Array[Byte])
 
+  case class HandleShutdown(cause: ShutdownSignalException)
+
+  case class HandleDelivery(consumerTag: String, envelope: Envelope, properties: AMQP.BasicProperties, body: Array[Byte])
+  case class HandleCancel(consumerTag: String)
 
 }

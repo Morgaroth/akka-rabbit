@@ -1,13 +1,11 @@
 package com.coiney.akka.rabbit.actors
 
 import akka.actor._
-import com.rabbitmq.client.{Channel, ShutdownSignalException}
+import com.rabbitmq.client.Channel
 
 
 object ChannelKeeper {
   case class HandleChannel(channel: Channel)
-
-  case class Shutdown(cause: ShutdownSignalException)
 
   sealed trait State
   case object Connected extends State
@@ -56,7 +54,7 @@ private[rabbit] class ChannelKeeper extends Actor
     case req: Request =>
       handler forward req
 
-    case Shutdown(cause) if !cause.isInitiatedByApplication =>
+    case HandleShutdown(cause) if !cause.isInitiatedByApplication =>
       log.error(cause, "The AMQP channel was lost")
       context.stop(handler)
       sendEvent(Disconnected)
