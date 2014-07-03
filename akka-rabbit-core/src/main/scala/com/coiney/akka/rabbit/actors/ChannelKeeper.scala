@@ -37,7 +37,7 @@ private[rabbit] class ChannelKeeper extends Actor
   def disconnected: Actor.Receive =  {
     case HandleChannel(channel) =>
       log.debug(s"received channel $channel")
-      val handler = context.actorOf(ChannelHandler.props(channel))
+      val handler = context.actorOf(ChannelHandler.props(channel), "handler")
       handler ! AddShutdownListener(self)
       handler ! AddReturnListener(self)
       channelCallback(channel)
