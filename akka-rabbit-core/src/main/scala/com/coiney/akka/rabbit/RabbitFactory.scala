@@ -40,8 +40,18 @@ trait RabbitFactory {
   }
 
   def createConsumer(connectionKeeper: ActorRef, listener: ActorRef, name: Option[String] = None, autoAck: Boolean = false, timeout: FiniteDuration = 5000.millis): ActorRef = {
-    val futureProducer = (connectionKeeper ? ConnectionKeeper.CreateChild(Consumer.props(listener, autoAck), name))(timeout).mapTo[ActorRef]
-    Await.result(futureProducer, timeout)
+    val futureConsumer = (connectionKeeper ? ConnectionKeeper.CreateChild(Consumer.props(listener, autoAck), name))(timeout).mapTo[ActorRef]
+    Await.result(futureConsumer, timeout)
+  }
+
+  def createRPCServer(connectionKeeper: ActorRef, processor: RPC.Processor, name: Option[String] = None, timeout: FiniteDuration = 5000.millis): ActorRef = {
+    val futureRPCServer = (connectionKeeper ? ConnectionKeeper.CreateChild(RPCServer.props(processor), name))(timeout).mapTo[ActorRef]
+    Await.result(futureRPCServer, timeout)
+  }
+
+  def createRPCClient(connectionKeeper: ActorRef, name: Option[String] = None, timeout: FiniteDuration = 5000.millis): ActorRef = {
+    val futureRPCClient = (connectionKeeper ? ConnectionKeeper.CreateChild(RPCClient.props(), name))(timeout).mapTo[ActorRef]
+    Await.result(futureRPCClient, timeout)
   }
 
   def onConnected(actor: ActorRef, onConnected: () => Unit): Unit = {
