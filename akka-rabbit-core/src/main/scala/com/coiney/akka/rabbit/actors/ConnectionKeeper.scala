@@ -12,8 +12,6 @@ object ConnectionKeeper {
   case object GetChannel
   private[rabbit] case class CreateChild(props: Props, name: Option[String])
 
-  case class Shutdown(cause: ShutdownSignalException)
-
   sealed trait State
   case object Connected extends State
   case object Disconnected extends State
@@ -25,6 +23,7 @@ object ConnectionKeeper {
 class ConnectionKeeper(connectionFactory: ConnectionFactory) extends Actor
                                                              with WatchingObservable
                                                              with ActorLogging {
+  import com.coiney.akka.rabbit.messages._
   import com.coiney.akka.rabbit.actors.ConnectionKeeper._
   implicit val ec = context.dispatcher
 
@@ -84,7 +83,7 @@ class ConnectionKeeper(connectionFactory: ConnectionFactory) extends Actor
       val child = createChild(props, name)
       sender ! child
 
-    case Shutdown(cause) =>
+    case HandleShutdown(cause) =>
       log.error(cause, "The AMQP connection was lost")
       connection = None
       sendEvent(Disconnected)
@@ -96,7 +95,7 @@ class ConnectionKeeper(connectionFactory: ConnectionFactory) extends Actor
     val newConnection = connectionFactory.newConnection()
     newConnection.addShutdownListener(new ShutdownListener {
       override def shutdownCompleted(cause: ShutdownSignalException): Unit =
-        self ! Shutdown(cause)
+        self ! HandleShutdown(cause)
     })
     newConnection
   }

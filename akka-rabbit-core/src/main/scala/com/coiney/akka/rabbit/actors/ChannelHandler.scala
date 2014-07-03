@@ -13,7 +13,7 @@ private[rabbit] object ChannelHandler {
 
 
 private[rabbit] class ChannelHandler(channel: Channel) extends Actor
-                                                        with ActorLogging {
+                                                       with ActorLogging {
   import com.coiney.akka.rabbit.messages._
 
   override def postStop(): Unit = Try {
