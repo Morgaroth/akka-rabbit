@@ -24,7 +24,7 @@ object BuildSettings {
   val buildOrganizationHomepage = Some(url("http://coiney.com"))
 
 
-  val buildSettings = Defaults.defaultSettings ++ Seq(
+  val buildSettings = Seq(
     name                 := buildName,
     version              := buildVersion,
     scalaVersion         := buildScalaVersion,
@@ -115,9 +115,6 @@ object Scalabuild extends Build {
     sprayrepo
   )
 
-  val baseSettings = Project.defaultSettings ++
-                      mimaDefaultSettings
-
   val publishSettings: Seq[Setting[_]] = Seq(
     publishTo := {
       val nexus = "http://archives.coiney.com:8888"
@@ -153,7 +150,7 @@ object Scalabuild extends Build {
       </developers>
   )
 
-val sharedSettings = baseSettings ++ buildSettings ++ publishSettings ++ unidocSettings ++ scoverageSettings ++ coverallsSettings ++ Seq(
+val sharedSettings = buildSettings ++ publishSettings ++ unidocSettings ++ mimaDefaultSettings ++ scoverageSettings ++ coverallsSettings ++ Seq(
     libraryDependencies ++= (testDeps ++ commonDeps),
     resolvers ++= commonResolvers,
     scalacOptions ++= Seq("-encoding", "utf8"),
