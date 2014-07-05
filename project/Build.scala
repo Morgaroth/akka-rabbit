@@ -10,7 +10,7 @@ import sbtunidoc.Plugin._
 
 object BuildSettings {
   val buildName                 = "akka-rabbit"
-  val buildVersion              = "0.1.0-SNAPSHOT"
+  val buildVersion              = "0.1.0"
   val buildScalaVersion         = "2.10.4"
   val buildJvmVersion           = "1.7"
 
