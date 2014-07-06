@@ -34,7 +34,7 @@ trait RabbitFunctions {
   def waitForConfirmsOrDie(timeout: Option[FiniteDuration])(channel: Channel): Unit
   def addConsumer(listener: ActorRef)(channel: Channel): DefaultConsumer
 
-  def close(channel: Channel): Unit
+  def closeChannel(channel: Channel): Unit
 }
 
 
@@ -163,7 +163,7 @@ trait AMQPRabbitFunctions extends RabbitFunctions {
     }
   }
 
-  def close(channel: Channel): Unit = {
+  def closeChannel(channel: Channel): Unit = {
     channel.close()
   }
 

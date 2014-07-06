@@ -20,7 +20,7 @@ private[rabbit] class ChannelHandler(channel: Channel) extends Actor
   import com.coiney.akka.rabbit.messages._
 
   override def postStop(): Unit = Try {
-    close(channel)
+    closeChannel(channel)
   }
 
   override def receive: Actor.Receive = {
