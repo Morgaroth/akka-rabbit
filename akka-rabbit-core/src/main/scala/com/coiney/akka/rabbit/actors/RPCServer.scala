@@ -11,12 +11,13 @@ import com.coiney.akka.rabbit.RPC._
 
 
 object RPCServer {
-  def apply(processor: Processor): RPCServer = new RPCServer(processor)
+  def apply(processor: Processor): RPCServer = new RPCServer(processor) with AMQPRabbitFunctions
 
   def props(processor: Processor): Props = Props(RPCServer(processor))
 }
 
 class RPCServer(processor: Processor) extends ChannelKeeper {
+  this: RabbitFunctions =>
   import com.coiney.akka.rabbit.messages._
 
   var consumer: Option[DefaultConsumer] = None
@@ -41,13 +42,7 @@ class RPCServer(processor: Processor) extends ChannelKeeper {
 
   override def channelCallback(channel: Channel): Unit = {
     super.channelCallback(channel)
-    consumer = Some(new DefaultConsumer(channel){
-      override def handleDelivery(consumerTag: String, envelope: Envelope, properties: AMQP.BasicProperties, body: Array[Byte]): Unit =
-        self ! HandleDelivery(consumerTag, envelope, properties, body)
-
-      override def handleCancel(consumerTag: String): Unit =
-        self ! HandleCancel(consumerTag)
-    })
+    consumer = Some(addConsumer(channel)(self))
   }
 
   override val supervisorStrategy =
