@@ -1,171 +1,144 @@
 package com.coiney.akka.rabbit.actors
 
 import akka.actor.{Actor, ActorLogging, Props}
-import com.rabbitmq.client.{AMQP, Channel, _}
+import com.rabbitmq.client._
 
 import scala.collection.JavaConversions._
 import scala.util.{Failure, Success, Try}
 
 
 private[rabbit] object ChannelHandler {
-  def props(channel: Channel): Props = Props(classOf[ChannelHandler], channel)
+  def apply(channel: Channel): ChannelHandler = new ChannelHandler(channel) with AMQPRabbitFunctions
+
+  def props(channel: Channel): Props = Props(ChannelHandler(channel))
 }
 
 
 private[rabbit] class ChannelHandler(channel: Channel) extends Actor
                                                        with ActorLogging {
+  this: RabbitFunctions =>
   import com.coiney.akka.rabbit.messages._
 
   override def postStop(): Unit = Try {
-    channel.close()
+    close(channel)
   }
 
   override def receive: Actor.Receive = {
 
     case req @ AddConfirmListener(listener) =>
       sender ! handleRequest(req){ () =>
-        channel.addConfirmListener(new ConfirmListener {
-          override def handleAck(deliveryTag: Long, multiple: Boolean): Unit =
-            listener ! HandleAck(deliveryTag, multiple)
-
-          override def handleNack(deliveryTag: Long, multiple: Boolean): Unit =
-            listener ! HandleNack(deliveryTag, multiple)
-        })
+        addConfirmListener(listener)(channel)
       }
 
     case req @ AddReturnListener(listener) =>
       sender ! handleRequest(req){ () =>
-        channel.addReturnListener(new ReturnListener {
-          override def handleReturn(replyCode: Int, replyText: String, exchange: String, routingKey: String, properties: AMQP.BasicProperties, body: Array[Byte]): Unit =
-            listener ! HandleReturn(replyCode, replyText, exchange, routingKey, properties, body)
-        })
+        addReturnListener(listener)(channel)
       }
 
     case req @ AddShutdownListener(listener) =>
       sender ! handleRequest(req){ () =>
-        channel.addShutdownListener(new ShutdownListener {
-          override def shutdownCompleted(cause: ShutdownSignalException): Unit =
-            listener ! HandleShutdown(cause)
-        })
+        addShutdownListener(listener)(channel)
       }
 
     case req @ DeclareQueue(name, durable, exclusive, autoDelete, arguments) =>
       sender ! handleRequest(req){ () =>
-        channel.queueDeclare(name, durable, exclusive, autoDelete, arguments)
+        queueDeclare(name, durable, exclusive, autoDelete, arguments)(channel)
       }
 
     case req @ DeclareQueuePassive(name) =>
       sender ! handleRequest(req){ () =>
-        channel.queueDeclarePassive(name)
+        queueDeclarePassive(name)(channel)
       }
 
     case req @ DeleteQueue(name, ifUnused, ifEmpty) =>
       sender ! handleRequest(req){ () =>
-        channel.queueDelete(name, ifUnused, ifEmpty)
+        queueDelete(name, ifUnused, ifEmpty)(channel)
       }
 
     case req @ PurgeQueue(name) =>
       sender ! handleRequest(req){ () =>
-        channel.queuePurge(name)
+        queuePurge(name)(channel)
       }
 
     case req @ BindQueue(name, exchange, routingKey, arguments) =>
       sender ! handleRequest(req){ () =>
-        channel.queueBind(name, exchange, routingKey, arguments)
+        queueBind(name, exchange, routingKey, arguments)(channel)
       }
 
     case req @ UnbindQueue(name, exchange, routingKey) =>
       sender ! handleRequest(req){ () =>
-        channel.queueUnbind(name, exchange, routingKey)
+        queueUnbind(name, exchange, routingKey)(channel)
       }
 
     case req @ DeclareExchange(name, exchangeType, durable, autoDelete, arguments) =>
       sender ! handleRequest(req){ () =>
-        channel.exchangeDeclare(name, exchangeType, durable, autoDelete, arguments)
+        exchangeDeclare(name, exchangeType, durable, autoDelete, arguments)(channel)
       }
 
     case req @ DeclareExchangePassive(name) =>
       sender ! handleRequest(req){ () =>
-        channel.exchangeDeclarePassive(name)
+        exchangeDeclarePassive(name)(channel)
       }
 
     case req @ DeleteExchange(name) =>
       sender ! handleRequest(req){ () =>
-        channel.exchangeDelete(name)
+        exchangeDelete(name)(channel)
       }
 
     case req @ BindExchange(destination, source, routingKey, arguments) =>
       sender ! handleRequest(req){ () =>
-        channel.exchangeBind(destination, source, routingKey, arguments)
+        exchangeBind(destination, source, routingKey, arguments)(channel)
       }
 
     case req @ UnbindExchange(destination, source, routingKey) =>
       sender ! handleRequest(req){ () =>
-        channel.exchangeUnbind(destination, source, routingKey)
+        exchangeUnbind(destination, source, routingKey)(channel)
       }
 
     case req @ Publish(exchange, routingKey, body, mandatory, immediate, properties) =>
       log.debug(s"Publishing $req")
-      val props = properties.getOrElse(new AMQP.BasicProperties.Builder().build())
       sender ! handleRequest(req){ () =>
-        channel.basicPublish(exchange, routingKey, mandatory, immediate, props, body)
+        basicPublish(exchange, routingKey, body,  mandatory, immediate, properties)(channel)
       }
 
     case req @ Transaction(pubs) =>
       sender ! handleRequest(req){ () =>
-        channel.txSelect()
-        pubs.foreach{ pub =>
-          val props = pub.properties.getOrElse(new AMQP.BasicProperties.Builder().build())
-          channel.basicPublish(pub.exchange, pub.routingKey, pub.mandatory, pub.immediate, props, pub.body)
-        }
-        channel.txCommit()
+        commitTransaction(pubs)(channel)
       }
 
     case req @ Ack(deliveryTag) =>
       sender ! handleRequest(req){ () =>
-        channel.basicAck(deliveryTag, false)
+        basicAck(deliveryTag)(channel)
       }
 
     case req @ Reject(deliveryTag, requeue) =>
       sender ! handleRequest(req){ () =>
-        channel.basicReject(deliveryTag, false)
+        basicReject(deliveryTag, requeue)(channel)
       }
 
     case req @ Get(queue, autoAck) =>
       sender ! handleRequest(req){ () =>
-        channel.basicGet(queue, autoAck)
+        basicGet(queue, autoAck)(channel)
       }
 
     case req @ ConfirmSelect =>
       sender ! handleRequest(req){ () =>
-        channel.confirmSelect()
+        confirmSelect(channel)
       }
 
     case req @ WaitForConfirms(timeout) =>
       sender ! handleRequest(req){ () =>
-        timeout match {
-          case None    => channel.waitForConfirms()
-          case Some(t) => channel.waitForConfirms(t.toMillis)
-        }
+        waitForConfirms(timeout)(channel)
       }
 
     case req @ WaitForConfirmsOrDie(timeout) =>
       sender ! handleRequest(req){ () =>
-        timeout match {
-          case None    => channel.waitForConfirms()
-          case Some(t) => channel.waitForConfirms(t.toMillis)
-        }
+        waitForConfirmsOrDie(timeout)(channel)
       }
 
     case req @ AddConsumer(listener) =>
       sender ! handleRequest(req){ () =>
-        new DefaultConsumer(channel){
-          override def handleDelivery(consumerTag: String, envelope: Envelope, properties: AMQP.BasicProperties, body: Array[Byte]): Unit =
-            listener ! HandleDelivery(consumerTag, envelope, properties, body)
-
-          override def handleCancel(consumerTag: String): Unit =
-            listener ! HandleCancel(consumerTag)
-        }
+        addConsumer(listener)(channel)
       }
 
   }
