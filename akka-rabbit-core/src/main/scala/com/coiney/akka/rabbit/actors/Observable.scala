@@ -5,12 +5,12 @@ import akka.actor.{Actor, ActorRef}
 
 object Observable {
   case class RegisterObserver(observer: ActorRef)
-  case class UnregisterObserver(observer: ActorRef)
+  case class DeregisterObserver(observer: ActorRef)
 }
 
 trait Observable {
   def sendEvent[T](event: T): Unit
-  def observerReceive(registerAck: Option[Any] = None, unregisterAck: Option[Any] = None): Actor.Receive
+  def observerReceive(onRegister: Option[Any] = None, onDeregister: Option[Any] = None): Actor.Receive
 }
 
 trait BasicObservable {
@@ -21,13 +21,13 @@ trait BasicObservable {
 
   def sendEvent[T](event: T): Unit = observers.foreach(_ ! event)
 
-  def observeReceive(registerAck: Option[Any] = None, unregisterAck: Option[Any] = None): Actor.Receive = {
+  def observeReceive(onRegister: Option[Any] = None, onDeregister: Option[Any] = None): Actor.Receive = {
     case RegisterObserver(observer) if !observers.contains(observer) =>
       observers = observers :+ observer
-      registerAck.foreach(observer ! _)
-    case UnregisterObserver(observer) =>
+      onRegister.foreach(observer ! _)
+    case DeregisterObserver(observer) =>
       observers = observers.filterNot(_ == observer)
-      unregisterAck.foreach(observer ! _)
+      onDeregister.foreach(observer ! _)
   }
 
 }
@@ -40,23 +40,23 @@ trait WatchingObservable {
 
   def sendEvent[T](event: T): Unit = observers.foreach(_ ! event)
 
-  def observeReceive(registerAck: Option[Any] = None, unregisterAck: Option[Any] = None): Actor.Receive = {
+  def observeReceive(onRegister: Option[Any] = None, onDeregister: Option[Any] = None): Actor.Receive = {
     case RegisterObserver(observer) if !observers.contains(observer) =>
-      registerObserver(observer, registerAck)
-    case UnregisterObserver(observer) =>
-      unregisterObserver(observer, unregisterAck)
+      registerObserver(observer, onRegister)
+    case DeregisterObserver(observer) =>
+      deregisterObserver(observer, onDeregister)
   }
 
-  def registerObserver(observer: ActorRef, ack: Option[Any] = None): Unit = {
+  def registerObserver(observer: ActorRef, onRegister: Option[Any] = None): Unit = {
     context.watch(observer)
     observers = observers :+ observer
-    ack.foreach(observer ! _)
+    onRegister.foreach(observer ! _)
   }
 
-  def unregisterObserver(observer: ActorRef, ack: Option[Any] = None): Unit = {
+  def deregisterObserver(observer: ActorRef, onDeregister: Option[Any] = None): Unit = {
     context.unwatch(observer)
     observers = observers.filterNot(_ == observer)
-    ack.foreach(observer ! _)
+    onDeregister.foreach(observer ! _)
   }
 
 }

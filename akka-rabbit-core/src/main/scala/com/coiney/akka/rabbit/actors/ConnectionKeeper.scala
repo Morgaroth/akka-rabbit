@@ -41,7 +41,7 @@ class ConnectionKeeper(connectionFactory: ConnectionFactory) extends Actor
 
   override def unhandled(message: Any): Unit = {
     message match {
-      case Terminated(dead) if observers.contains(dead) => unregisterObserver(dead, None)
+      case Terminated(dead) if observers.contains(dead) => deregisterObserver(dead, None)
       case _                                            => super.unhandled(message)
     }
   }
