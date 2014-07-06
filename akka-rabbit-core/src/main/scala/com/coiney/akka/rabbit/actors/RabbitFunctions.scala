@@ -13,9 +13,7 @@ trait RabbitFunctions {
   // connection methods
   def addShutdownListener(connection: Connection)(listener: ActorRef): Unit
   def createChannel(connection: Connection): Channel
-
   def closeConnection(connection: Connection): Unit
-
 
   // channel methods
   def addConfirmListener(channel: Channel)(listener: ActorRef): Unit
@@ -34,6 +32,8 @@ trait RabbitFunctions {
   def exchangeUnbind(channel: Channel)(destination: String, source: String, routingKey: String): Exchange.UnbindOk
   def basicPublish(channel: Channel)(exchange: String, routingKey: String, body: Array[Byte], mandatory: Boolean, immediate: Boolean, properties: Option[AMQP.BasicProperties]): Unit
   def commitTransaction(channel: Channel)(publishes: Seq[Publish]): Tx.CommitOk
+  def basicConsume(channel: Channel)(queue: String, autoAck: Boolean, consumer: DefaultConsumer): String
+  def basicCancel(channel: Channel)(consumerTag: String): Unit
   def basicAck(channel: Channel)(deliveryTag: Long): Unit
   def basicReject(channel: Channel)(deliveryTag: Long, requeue: Boolean): Unit
   def basicGet(channel: Channel)(queue: String, autoAck: Boolean): Unit
@@ -41,7 +41,6 @@ trait RabbitFunctions {
   def waitForConfirms(channel: Channel)(timeout: Option[FiniteDuration]): Boolean
   def waitForConfirmsOrDie(channel: Channel)(timeout: Option[FiniteDuration]): Unit
   def addConsumer(channel: Channel)(listener: ActorRef): DefaultConsumer
-
   def closeChannel(channel: Channel): Unit
 }
 
@@ -144,6 +143,14 @@ trait AMQPRabbitFunctions extends RabbitFunctions {
       channel.basicPublish(p.exchange, p.routingKey, p.mandatory, p.immediate, props, p.body)
     }
     channel.txCommit()
+  }
+
+  def basicConsume(channel: Channel)(queue: String, autoAck: Boolean, consumer: DefaultConsumer): String = {
+    channel.basicConsume(queue, autoAck, consumer)
+  }
+
+  def basicCancel(channel: Channel)(consumerTag: String): Unit = {
+    channel.basicCancel(consumerTag)
   }
 
   def basicAck(channel: Channel)(deliveryTag: Long): Unit = {

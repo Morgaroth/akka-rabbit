@@ -11,12 +11,13 @@ import scala.collection.JavaConversions._
 object RPCClient {
   case class PendingRequest(sender: ActorRef, expectedNumberOfResponses: Int, handleDeliveries: List[HandleDelivery])
 
-  def apply(): RPCClient = new RPCClient()
+  def apply(): RPCClient = new RPCClient() with AMQPRabbitFunctions
 
   def props(): Props = Props(RPCClient())
 }
 
 class RPCClient extends ChannelKeeper {
+  this: RabbitFunctions =>
   import RPCClient._
   import com.coiney.akka.rabbit.messages._
 
@@ -29,16 +30,16 @@ class RPCClient extends ChannelKeeper {
   def rpcClientConnected(channel: Channel): Actor.Receive = {
     case RPC.Request(publishes, numberOfResponses) =>
       val correlationId = java.util.UUID.randomUUID().toString
-      publishes.foreach{ publish =>
-        val props = publish.properties.getOrElse(new AMQP.BasicProperties()).builder().correlationId(correlationId).replyTo(queue.get).build()
-        channel.basicPublish(publish.exchange, publish.routingKey, publish.mandatory, publish.immediate, props, publish.body)
+      publishes.foreach{ p =>
+        val props = p.properties.getOrElse(new AMQP.BasicProperties()).builder().correlationId(correlationId).replyTo(queue.get).build()
+        basicPublish(channel)(p.exchange, p.routingKey, p.body, p.mandatory, p.immediate, Some(props))
       }
       if (numberOfResponses > 0) {
         pendingRequests += (correlationId -> PendingRequest(sender, numberOfResponses, List.empty[HandleDelivery]))
       }
 
     case hd @ HandleDelivery(consumerTag, envelope, properties, body) =>
-      channel.basicAck(envelope.getDeliveryTag, false)
+      basicAck(channel)(envelope.getDeliveryTag)
       val correlationId = properties.getCorrelationId
       pendingRequests.get(correlationId) match {
         case None =>
@@ -55,12 +56,13 @@ class RPCClient extends ChannelKeeper {
 
   override def channelCallback(channel: Channel): Unit = {
     super.channelCallback(channel)
-    queue = Some(channel.queueDeclare("", false, true, true, Map.empty[String, AnyRef]).getQueue)
-    consumer = Some(new DefaultConsumer(channel){
-      override def handleDelivery(consumerTag: String, envelope: Envelope, properties: AMQP.BasicProperties, body: Array[Byte]): Unit =
-        self ! HandleDelivery(consumerTag, envelope, properties, body)
-    })
-    channel.basicConsume(queue.get, false, consumer.get)
+    createAndConsumeReplyQueue(channel)
+  }
+
+  private def createAndConsumeReplyQueue(channel: Channel): Unit = {
+    queue = Some(queueDeclare(channel)("", durable = false, exclusive = true, autoDelete = true, Map.empty[String, AnyRef]).getQueue)
+    consumer = Some(addConsumer(channel)(self))
+    basicConsume(channel)(queue.get, autoAck = false, consumer.get)
   }
 
 }

@@ -4,7 +4,6 @@ import akka.actor.SupervisorStrategy.Stop
 import akka.actor.{OneForOneStrategy, Actor, ActorRef, Props}
 import com.rabbitmq.client.{AMQP, Channel, DefaultConsumer, Envelope}
 
-import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 
 import com.coiney.akka.rabbit.RPC._
@@ -26,14 +25,14 @@ class RPCServer(processor: Processor) extends ChannelKeeper {
 
   def rpcServerConnected(channel: Channel): Actor.Receive = {
     case req @ ConsumeQueue(name, durable, exclusive, autoDelete, arguments) =>
-      channel.queueDeclare(name, durable, exclusive, autoDelete, arguments)
-      channel.basicConsume(name, false, consumer.get)
+      queueDeclare(channel)(name, durable, exclusive, autoDelete, arguments)
+      basicConsume(channel)(name, autoAck = false, consumer.get)
 
     case req @ ConsumeBinding(exchangeName, exchangeType, queueName, routingKey, exchangeDurable, exchangeAutoDelete, queueDurable, queueExclusive, queueAutoDelete, exchangeArgs, queueArgs, bindingArgs) =>
-      channel.exchangeDeclare(exchangeName, exchangeType, exchangeDurable, exchangeAutoDelete, exchangeArgs)
-      channel.queueDeclare(queueName, queueDurable, queueExclusive, queueAutoDelete, queueArgs)
-      channel.queueBind(queueName, exchangeName, routingKey, exchangeArgs)
-      channel.basicConsume(queueName, false, consumer.get)
+      exchangeDeclare(channel)(exchangeName, exchangeType, exchangeDurable, exchangeAutoDelete, exchangeArgs)
+      queueDeclare(channel)(queueName, queueDurable, queueExclusive, queueAutoDelete, queueArgs)
+      queueBind(channel)(queueName, exchangeName, routingKey, exchangeArgs)
+      basicConsume(channel)(queueName, autoAck = false, consumer.get)
 
     case hd @ HandleDelivery(consumerTag, envelope, properties, body) =>
       val rpcProcessor = context.actorOf(RPCProcessor.props(processor, channel))

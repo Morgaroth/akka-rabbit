@@ -8,14 +8,14 @@ import scala.util.{Failure, Success, Try}
 
 
 object Consumer {
-  def apply(listener: ActorRef, autoAck: Boolean): Consumer = new Consumer(listener, autoAck) with RequestHandler
+  def apply(listener: ActorRef, autoAck: Boolean): Consumer = new Consumer(listener, autoAck) with AMQPRabbitFunctions with RequestHandler
 
   def props(listener: ActorRef, autoAck: Boolean = false): Props = Props(Consumer(listener, autoAck))
 }
 
 
 class Consumer(listener: ActorRef, autoAck: Boolean = false) extends ChannelKeeper {
-  this: RequestHandler =>
+  this: RabbitFunctions with RequestHandler =>
   import com.coiney.akka.rabbit.messages._
 
   var consumer: Option[DefaultConsumer] = None
@@ -27,8 +27,8 @@ class Consumer(listener: ActorRef, autoAck: Boolean = false) extends ChannelKeep
       case None    => log.debug("Channel is not a consumer.")
       case Some(c) =>
         sender ! handleRequest(req){ () =>
-          channel.queueDeclare(name, durable, exclusive, autoDelete, arguments)
-          val consumerTag = channel.basicConsume(name, autoAck, c)
+          queueDeclare(channel)(name, durable, exclusive, autoDelete, arguments)
+          val consumerTag = basicConsume(channel)(name, autoAck, c)
           log.debug(s"Consuming using $consumerTag.")
           consumerTag
         }
@@ -38,10 +38,10 @@ class Consumer(listener: ActorRef, autoAck: Boolean = false) extends ChannelKeep
       case None    => log.debug("Channel is not a consumer.")
       case Some(c) =>
         sender ! handleRequest(req){ () =>
-          channel.exchangeDeclare(exchangeName, exchangeType, exchangeDurable, exchangeAutoDelete, exchangeArgs)
-          channel.queueDeclare(queueName, queueDurable, queueExclusive, queueAutoDelete, queueArgs)
-          channel.queueBind(queueName, exchangeName, routingKey, exchangeArgs)
-          val consumerTag = channel.basicConsume(queueName, autoAck, c)
+          exchangeDeclare(channel)(exchangeName, exchangeType, exchangeDurable, exchangeAutoDelete, exchangeArgs)
+          queueDeclare(channel)(queueName, queueDurable, queueExclusive, queueAutoDelete, queueArgs)
+          queueBind(channel)(queueName, exchangeName, routingKey, exchangeArgs)
+          val consumerTag = basicConsume(channel)(queueName, autoAck, c)
           log.debug(s"Consuming using $consumerTag.")
           consumerTag
         }
@@ -51,22 +51,14 @@ class Consumer(listener: ActorRef, autoAck: Boolean = false) extends ChannelKeep
       case None    => log.debug("Channel is not a consumer.")
       case Some(c) =>
         sender ! handleRequest(req){ () =>
-          channel.basicCancel(consumerTag)
+          basicCancel(channel)(consumerTag)
         }
     }
   }
 
   override def channelCallback(channel: Channel): Unit = {
     super.channelCallback(channel)
-    consumer = Some(
-      new DefaultConsumer(channel){
-        override def handleDelivery(consumerTag: String, envelope: Envelope, properties: AMQP.BasicProperties, body: Array[Byte]): Unit =
-          listener ! HandleDelivery(consumerTag, envelope, properties, body)
-
-        override def handleCancel(consumerTag: String): Unit =
-          listener ! HandleCancel(consumerTag)
-      }
-    )
+    consumer = Some(addConsumer(channel)(listener))
   }
 
 }
