@@ -8,11 +8,14 @@ import scala.util.{Failure, Success, Try}
 
 
 object Consumer {
-  def props(listener: ActorRef, autoAck: Boolean = false): Props = Props(classOf[Consumer], listener, autoAck)
+  def Consumer(listener: ActorRef, autoAck: Boolean): Consumer = new Consumer(listener, autoAck) with RequestHandler
+
+  def props(listener: ActorRef, autoAck: Boolean = false): Props = Props(Consumer(listener, autoAck))
 }
 
 
 class Consumer(listener: ActorRef, autoAck: Boolean = false) extends ChannelKeeper {
+  this: RequestHandler =>
   import com.coiney.akka.rabbit.messages._
 
   var consumer: Option[DefaultConsumer] = None
@@ -50,14 +53,6 @@ class Consumer(listener: ActorRef, autoAck: Boolean = false) extends ChannelKeep
         sender ! handleRequest(req){ () =>
           channel.basicCancel(consumerTag)
         }
-    }
-  }
-
-  private def handleRequest[T](request: Request)(f: () => T): Response = {
-    Try(f()) match {
-      case Success(())       => OK(request, None)
-      case Success(response) => OK(request, Some(response))
-      case Failure(cause)    => ERROR(request, cause)
     }
   }
 
