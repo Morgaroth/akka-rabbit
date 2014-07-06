@@ -153,12 +153,20 @@ object Scalabuild extends Build {
 val sharedSettings = buildSettings ++ publishSettings ++ unidocSettings ++ mimaDefaultSettings ++ scoverageSettings ++ coverallsSettings ++ Seq(
     libraryDependencies ++= (testDeps ++ commonDeps),
     resolvers ++= commonResolvers,
-    scalacOptions ++= Seq("-encoding", "utf8"),
-    scalacOptions += "-unchecked",
-    scalacOptions += "-deprecation",
-    scalacOptions += "-Yresolve-term-conflict:package",
-    javacOptions ++= Seq("-source", buildJvmVersion, "-target", buildJvmVersion),
-    javacOptions in doc := Seq("-source", buildJvmVersion),
+    scalacOptions ++= Seq(
+      "-encoding", "utf8",
+      "-g:vars",
+      "-unchecked",
+      "-deprecation",
+      "-Yresolve-term-conflict:package"
+    ),
+    javacOptions ++= Seq(
+      "-source", buildJvmVersion,
+      "-target", buildJvmVersion
+    ),
+    javacOptions in doc := Seq(
+      "-source", buildJvmVersion
+    ),
     parallelExecution in Test := true
   )
 
