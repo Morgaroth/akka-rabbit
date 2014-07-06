@@ -11,7 +11,9 @@ object ChannelKeeper {
   case object Connected extends State
   case object Disconnected extends State
 
-  def props(): Props = Props(classOf[ChannelKeeper])
+  def apply(): ChannelKeeper = new ChannelKeeper
+
+  def props(): Props = Props(ChannelKeeper())
 }
 
 

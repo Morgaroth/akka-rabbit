@@ -9,7 +9,9 @@ import com.coiney.akka.rabbit.RPC._
 
 
 private[rabbit] object RPCProcessor {
-  def props(processor: Processor, channel: Channel): Props = Props(classOf[RPCProcessor], processor, channel)
+  def apply(processor: Processor, channel: Channel): RPCProcessor = new RPCProcessor(processor, channel)
+
+  def props(processor: Processor, channel: Channel): Props = Props(RPCProcessor(processor, channel))
 }
 
 private[rabbit] class RPCProcessor(processor: Processor, channel: Channel) extends Actor

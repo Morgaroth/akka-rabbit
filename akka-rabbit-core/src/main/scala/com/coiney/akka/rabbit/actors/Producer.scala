@@ -4,7 +4,9 @@ import akka.actor.Props
 
 
 object Producer {
-  def props(): Props = Props(classOf[Producer])
+  def apply(): Producer = new Producer()
+
+  def props(): Props = Props(Producer())
 }
 
 

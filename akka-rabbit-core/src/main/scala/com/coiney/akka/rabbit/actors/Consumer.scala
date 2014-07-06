@@ -8,7 +8,7 @@ import scala.util.{Failure, Success, Try}
 
 
 object Consumer {
-  def Consumer(listener: ActorRef, autoAck: Boolean): Consumer = new Consumer(listener, autoAck) with RequestHandler
+  def apply(listener: ActorRef, autoAck: Boolean): Consumer = new Consumer(listener, autoAck) with RequestHandler
 
   def props(listener: ActorRef, autoAck: Boolean = false): Props = Props(Consumer(listener, autoAck))
 }

@@ -11,7 +11,9 @@ import scala.collection.JavaConversions._
 object RPCClient {
   case class PendingRequest(sender: ActorRef, expectedNumberOfResponses: Int, handleDeliveries: List[HandleDelivery])
 
-  def props(): Props = Props(classOf[RPCClient])
+  def apply(): RPCClient = new RPCClient()
+
+  def props(): Props = Props(RPCClient())
 }
 
 class RPCClient extends ChannelKeeper {

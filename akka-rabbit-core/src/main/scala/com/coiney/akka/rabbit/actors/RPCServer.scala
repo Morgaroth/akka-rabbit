@@ -11,7 +11,9 @@ import com.coiney.akka.rabbit.RPC._
 
 
 object RPCServer {
-  def props(processor: Processor): Props = Props(classOf[RPCServer], processor)
+  def apply(processor: Processor): RPCServer = new RPCServer(processor)
+
+  def props(processor: Processor): Props = Props(RPCServer(processor))
 }
 
 class RPCServer(processor: Processor) extends ChannelKeeper {
