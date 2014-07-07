@@ -3,17 +3,23 @@ package com.coiney.akka.rabbit.actors
 import akka.actor.{Actor, ActorRef, Props}
 import com.rabbitmq.client.{DefaultConsumer, Channel}
 
+import com.coiney.akka.rabbit.messages.Request
 import com.coiney.akka.rabbit.{ExchangeConfig, QueueConfig, ChannelConfig}
 
 
 object Consumer {
-  def apply(listener: ActorRef, autoAck: Boolean = false, channelConfig: Option[ChannelConfig] = None): Consumer = new Consumer(listener, autoAck, channelConfig) with AMQPRabbitFunctions with RequestHandler
+  def apply(listener: ActorRef, autoAck: Boolean = false, channelConfig: Option[ChannelConfig] = None, provision: Seq[Request] = Seq.empty[Request]): Consumer =
+    new Consumer(listener, autoAck, channelConfig, provision) with AMQPRabbitFunctions with RequestHandler
 
-  def props(listener: ActorRef, autoAck: Boolean = false, channelConfig: Option[ChannelConfig] = None): Props = Props(Consumer(listener, autoAck, channelConfig))
+  def props(listener: ActorRef, autoAck: Boolean = false, channelConfig: Option[ChannelConfig] = None, provision: Seq[Request] = Seq.empty[Request]): Props =
+    Props(Consumer(listener, autoAck, channelConfig, provision))
 }
 
 
-class Consumer(listener: ActorRef, autoAck: Boolean = false, channelConfig: Option[ChannelConfig] = None) extends ChannelKeeper(channelConfig) {
+class Consumer(listener: ActorRef,
+               autoAck: Boolean = false,
+               channelConfig: Option[ChannelConfig] = None,
+               provision: Seq[Request] = Seq.empty[Request]) extends ChannelKeeper(channelConfig, provision) {
   this: RabbitFunctions with RequestHandler =>
   import com.coiney.akka.rabbit.messages._
 

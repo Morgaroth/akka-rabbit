@@ -3,19 +3,22 @@ package com.coiney.akka.rabbit.actors
 import akka.actor.{ActorRef, Actor, Props}
 import com.rabbitmq.client.{AMQP, DefaultConsumer, Channel}
 
-import com.coiney.akka.rabbit.messages.HandleDelivery
+import com.coiney.akka.rabbit.messages.{Request, HandleDelivery}
 import com.coiney.akka.rabbit.{QueueConfig, ChannelConfig, RPC}
 
 
 object RPCClient {
   case class PendingRequest(sender: ActorRef, expectedNumberOfResponses: Int, handleDeliveries: List[HandleDelivery])
 
-  def apply(channelConfig: Option[ChannelConfig] = None): RPCClient = new RPCClient(channelConfig) with AMQPRabbitFunctions
+  def apply(channelConfig: Option[ChannelConfig] = None, provision: Seq[Request] = Seq.empty[Request]): RPCClient =
+    new RPCClient(channelConfig, provision) with AMQPRabbitFunctions
 
-  def props(channelConfig: Option[ChannelConfig] = None): Props = Props(RPCClient(channelConfig))
+  def props(channelConfig: Option[ChannelConfig] = None, provision: Seq[Request] = Seq.empty[Request]): Props =
+    Props(RPCClient(channelConfig, provision))
 }
 
-class RPCClient(channelConfig: Option[ChannelConfig] = None) extends ChannelKeeper(channelConfig) {
+class RPCClient(channelConfig: Option[ChannelConfig] = None,
+                provision: Seq[Request] = Seq.empty[Request]) extends ChannelKeeper(channelConfig, provision) {
   this: RabbitFunctions =>
   import RPCClient._
   import com.coiney.akka.rabbit.messages._
