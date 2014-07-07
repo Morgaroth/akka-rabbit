@@ -8,7 +8,7 @@ import com.coiney.akka.rabbit._
 import com.coiney.akka.rabbit.messages.{ConsumeQueue, HandleDelivery}
 
 
-class exclamationProcessor extends RPC.Processor {
+class ExclamationProcessor extends RPC.Processor {
   override def process(hd: HandleDelivery): Result = {
     val req = new String(hd.body)
     println(s"Received: $req")
@@ -22,7 +22,7 @@ class exclamationProcessor extends RPC.Processor {
 }
 
 
-object RPCServer extends App {
+object RPCServerExample extends App {
 
   implicit val system = ActorSystem("ProducerSystem")
 
@@ -35,7 +35,7 @@ object RPCServer extends App {
   rabbit.waitForConnection(connectionKeeper)
 
   // create the RPC Server and wait for it to be connected
-  val rpcServer = rabbit.createRPCServer(connectionKeeper, new exclamationProcessor())
+  val rpcServer = rabbit.createRPCServer(connectionKeeper, new ExclamationProcessor())
   rabbit.waitForConnection(rpcServer)
 
   // set the queue

@@ -12,7 +12,7 @@ import com.coiney.akka.rabbit.messages._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-object RPCClient extends App {
+object RPCClientExample extends App {
   import ExecutionContext.Implicits.global
   implicit val timeout: Timeout = 5.seconds
 

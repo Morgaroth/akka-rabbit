@@ -7,7 +7,7 @@ import com.coiney.akka.rabbit.{QueueConfig, RabbitFactory}
 import com.coiney.akka.rabbit.messages._
 
 
-object Producer extends App {
+object ProducerExample extends App {
 
   implicit val system = ActorSystem("ProducerSystem")
 
