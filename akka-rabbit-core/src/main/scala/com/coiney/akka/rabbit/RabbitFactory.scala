@@ -16,21 +16,21 @@ import scala.concurrent.duration._
 
 
 trait RabbitFactory {
-  this: RabbitConfiguration =>
   import com.coiney.akka.rabbit.messages._
 
+  def connectionConfig: ConnectionConfig
   def actorRefFactory: ActorRefFactory
 
   val connectionFactory = new ConnectionFactory()
-  connectionFactory.setHost(config.host)
-  connectionFactory.setPort(config.port)
-  connectionFactory.setUsername(config.username)
-  connectionFactory.setPassword(config.password)
-  connectionFactory.setVirtualHost(config.virtualHost)
-  connectionFactory.setConnectionTimeout(config.connectionTimeout)
-  connectionFactory.setRequestedChannelMax(config.requestedChannelMax)
-  connectionFactory.setRequestedFrameMax(config.requestedFrameMax)
-  connectionFactory.setRequestedHeartbeat(config.requestedHeartbeat)
+  connectionFactory.setHost(connectionConfig.host)
+  connectionFactory.setPort(connectionConfig.port)
+  connectionFactory.setUsername(connectionConfig.username)
+  connectionFactory.setPassword(connectionConfig.password)
+  connectionFactory.setVirtualHost(connectionConfig.virtualHost)
+  connectionFactory.setConnectionTimeout(connectionConfig.connectionTimeout)
+  connectionFactory.setRequestedChannelMax(connectionConfig.requestedChannelMax)
+  connectionFactory.setRequestedFrameMax(connectionConfig.requestedFrameMax)
+  connectionFactory.setRequestedHeartbeat(connectionConfig.requestedHeartbeat)
 
   def setSharedExecutor(executor: ExecutorService): Unit =
     connectionFactory.setSharedExecutor(executor)
@@ -86,8 +86,8 @@ trait RabbitFactory {
 }
 
 object RabbitFactory {
-  def apply(cfg: Config)(implicit _actorRefFactory: ActorRefFactory): RabbitFactory = new RabbitFactory with RabbitConfiguration {
-    lazy val config: RabbitConfig = RabbitConfig(cfg)
+  def apply(cfg: Config)(implicit _actorRefFactory: ActorRefFactory): RabbitFactory = new RabbitFactory {
+    lazy val connectionConfig: ConnectionConfig = ConnectionConfig(cfg)
     val actorRefFactory = _actorRefFactory
   }
 }
