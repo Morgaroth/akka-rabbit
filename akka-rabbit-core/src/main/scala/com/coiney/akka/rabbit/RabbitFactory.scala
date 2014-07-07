@@ -8,6 +8,8 @@ import com.typesafe.config.Config
 import com.rabbitmq.client.ConnectionFactory
 import actors._
 
+import com.coiney.akka.pattern.Observable
+
 import scala.concurrent.Await
 import scala.concurrent.duration._
 

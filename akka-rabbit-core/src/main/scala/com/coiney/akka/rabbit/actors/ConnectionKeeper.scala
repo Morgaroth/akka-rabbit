@@ -3,6 +3,8 @@ package com.coiney.akka.rabbit.actors
 import akka.actor._
 import com.rabbitmq.client._
 
+import com.coiney.akka.pattern.WatchingObservable
+
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 

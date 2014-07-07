@@ -3,6 +3,7 @@ package com.coiney.akka.rabbit.actors
 import akka.actor._
 import com.rabbitmq.client.Channel
 
+import com.coiney.akka.pattern.WatchingObservable
 import com.coiney.akka.rabbit.ChannelConfig
 
 
