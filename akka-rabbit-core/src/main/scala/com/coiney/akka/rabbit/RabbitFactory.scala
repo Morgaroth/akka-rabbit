@@ -43,21 +43,21 @@ trait RabbitFactory {
     Await.result(futureProducer, timeout)
   }
 
-  def createConsumer(connectionKeeper: ActorRef, listener: ActorRef, channelConfig: Option[ChannelConfig] = None, queueConfig: Option[QueueConfig] = None, name: Option[String] = None, autoAck: Boolean = false, timeout: FiniteDuration = 5000.millis): ActorRef = {
-    val provision: Seq[Request] = queueConfig match {
+  def createConsumer(connectionKeeper: ActorRef, listener: ActorRef, channelConfig: Option[ChannelConfig] = None, queueConfig: Option[QueueConfig] = None, provision: Seq[Request] = Seq.empty[Request], name: Option[String] = None, autoAck: Boolean = false, timeout: FiniteDuration = 5000.millis): ActorRef = {
+    val p1: Seq[Request] = queueConfig match {
       case Some(cfg) => Seq(ConsumeQueue(cfg))
       case None      => Seq.empty[Request]
     }
-    val futureConsumer = (connectionKeeper ? ConnectionKeeper.CreateChild(Consumer.props(listener, autoAck, channelConfig, provision), name))(timeout).mapTo[ActorRef]
+    val futureConsumer = (connectionKeeper ? ConnectionKeeper.CreateChild(Consumer.props(listener, autoAck, channelConfig, p1 ++ provision), name))(timeout).mapTo[ActorRef]
     Await.result(futureConsumer, timeout)
   }
 
-  def createRPCServer(connectionKeeper: ActorRef, processor: RPC.Processor, channelConfig: Option[ChannelConfig] = None, queueConfig: Option[QueueConfig] = None, name: Option[String] = None, timeout: FiniteDuration = 5000.millis): ActorRef = {
-    val provision: Seq[Request] = queueConfig match {
+  def createRPCServer(connectionKeeper: ActorRef, processor: RPC.Processor, channelConfig: Option[ChannelConfig] = None, queueConfig: Option[QueueConfig] = None, provision: Seq[Request] = Seq.empty[Request], name: Option[String] = None, timeout: FiniteDuration = 5000.millis): ActorRef = {
+    val p1: Seq[Request] = queueConfig match {
       case Some(cfg) => Seq(ConsumeQueue(cfg))
       case None      => Seq.empty[Request]
     }
-    val futureRPCServer = (connectionKeeper ? ConnectionKeeper.CreateChild(RPCServer.props(processor, channelConfig, provision), name))(timeout).mapTo[ActorRef]
+    val futureRPCServer = (connectionKeeper ? ConnectionKeeper.CreateChild(RPCServer.props(processor, channelConfig, p1 ++ provision), name))(timeout).mapTo[ActorRef]
     Await.result(futureRPCServer, timeout)
   }
 
