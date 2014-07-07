@@ -33,12 +33,6 @@ class RPCServer(processor: Processor,
     case req @ ConsumeQueue(queueConfig) =>
       queueConsume(channel)(queueConfig, autoAck = false, consumer.get)
 
-    case req @ ConsumeBinding(exchangeName, exchangeType, queueName, routingKey, exchangeDurable, exchangeAutoDelete, queueDurable, queueExclusive, queueAutoDelete, exchangeArgs, queueArgs, bindingArgs) =>
-      exchangeDeclare(channel)(ExchangeConfig(exchangeName, exchangeType, exchangeDurable, exchangeAutoDelete, exchangeArgs))
-      queueDeclare(channel)(QueueConfig(queueName, queueDurable, queueExclusive, queueAutoDelete, queueArgs))
-      queueBind(channel)(queueName, exchangeName, routingKey, exchangeArgs)
-      basicConsume(channel)(queueName, autoAck = false, consumer.get)
-
     case hd @ HandleDelivery(consumerTag, envelope, properties, body) =>
       val rpcProcessor = context.actorOf(RPCProcessor.props(processor, channel))
       rpcProcessor forward hd

@@ -38,19 +38,6 @@ class Consumer(listener: ActorRef,
         }
     }
 
-    case req @ ConsumeBinding(exchangeName, exchangeType, queueName, routingKey, exchangeDurable, exchangeAutoDelete, queueDurable, queueExclusive, queueAutoDelete, exchangeArgs, queueArgs, bindingArgs) => consumer match {
-      case None    => log.debug("Channel is not a consumer.")
-      case Some(c) =>
-        sender ! handleRequest(req){ () =>
-          exchangeDeclare(channel)(ExchangeConfig(exchangeName, exchangeType, exchangeDurable, exchangeAutoDelete, exchangeArgs))
-          queueDeclare(channel)(QueueConfig(queueName, queueDurable, queueExclusive, queueAutoDelete, queueArgs))
-          queueBind(channel)(queueName, exchangeName, routingKey, exchangeArgs)
-          val consumerTag = basicConsume(channel)(queueName, autoAck, c)
-          log.debug(s"Consuming using $consumerTag.")
-          consumerTag
-        }
-    }
-
     case req @ CancelConsume(consumerTag) => consumer match {
       case None    => log.debug("Channel is not a consumer.")
       case Some(c) =>

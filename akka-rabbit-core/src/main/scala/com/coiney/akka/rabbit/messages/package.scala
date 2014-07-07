@@ -40,7 +40,6 @@ package object messages {
   case class AddConsumer(listener: ActorRef) extends Request
 
   case class ConsumeQueue(queueConfig: QueueConfig) extends Request
-  case class ConsumeBinding(exchangeName: String, exchangeType: String, queueName: String, routingKey: String, exchangeDurable: Boolean = false, exchangeAutoDelete: Boolean = false, queueDurable: Boolean = false, queueExclusive: Boolean = false, queueAutoDelete: Boolean = true, exchangeArgs: Map[String, AnyRef] = Map.empty, queueArgs: Map[String, AnyRef] = Map.empty, bindingArgs: Map[String, AnyRef] = Map.empty) extends Request
   case class CancelConsume(consumerTag: String) extends Request
 
   sealed trait Response
