@@ -1,7 +1,9 @@
 package com.coiney.akka.rabbit
 
-import com.coiney.akka.rabbit.messages.{HandleDelivery, Publish}
 import com.rabbitmq.client.AMQP
+
+import com.coiney.akka.rabbit.messages.{HandleDelivery, Publish}
+
 
 package object RPC {
 

@@ -1,20 +1,25 @@
 package com.coiney.akka.rabbit.actors
 
 import akka.actor.{ActorRef, Actor, Props}
-import com.coiney.akka.rabbit.messages.HandleDelivery
-import com.coiney.akka.rabbit.RPC
-import com.rabbitmq.client.{AMQP, Envelope, DefaultConsumer, Channel}
+import com.rabbitmq.client.{AMQP, DefaultConsumer, Channel}
 
-import scala.collection.JavaConversions._
+import com.coiney.akka.rabbit.messages.{Request, HandleDelivery}
+import com.coiney.akka.rabbit.{QueueConfig, ChannelConfig, RPC}
 
 
 object RPCClient {
   case class PendingRequest(sender: ActorRef, expectedNumberOfResponses: Int, handleDeliveries: List[HandleDelivery])
 
-  def props(): Props = Props(classOf[RPCClient])
+  def apply(channelConfig: Option[ChannelConfig] = None, provision: Seq[Request] = Seq.empty[Request]): RPCClient =
+    new RPCClient(channelConfig, provision) with AMQPRabbitFunctions
+
+  def props(channelConfig: Option[ChannelConfig] = None, provision: Seq[Request] = Seq.empty[Request]): Props =
+    Props(RPCClient(channelConfig, provision))
 }
 
-class RPCClient extends ChannelKeeper {
+class RPCClient(channelConfig: Option[ChannelConfig] = None,
+                provision: Seq[Request] = Seq.empty[Request]) extends ChannelKeeper(channelConfig, provision) {
+  this: RabbitFunctions =>
   import RPCClient._
   import com.coiney.akka.rabbit.messages._
 
@@ -27,16 +32,16 @@ class RPCClient extends ChannelKeeper {
   def rpcClientConnected(channel: Channel): Actor.Receive = {
     case RPC.Request(publishes, numberOfResponses) =>
       val correlationId = java.util.UUID.randomUUID().toString
-      publishes.foreach{ publish =>
-        val props = publish.properties.getOrElse(new AMQP.BasicProperties()).builder().correlationId(correlationId).replyTo(queue.get).build()
-        channel.basicPublish(publish.exchange, publish.routingKey, publish.mandatory, publish.immediate, props, publish.body)
+      publishes.foreach{ p =>
+        val props = p.properties.getOrElse(new AMQP.BasicProperties()).builder().correlationId(correlationId).replyTo(queue.get).build()
+        basicPublish(channel)(p.exchange, p.routingKey, p.body, p.mandatory, p.immediate, Some(props))
       }
       if (numberOfResponses > 0) {
         pendingRequests += (correlationId -> PendingRequest(sender, numberOfResponses, List.empty[HandleDelivery]))
       }
 
     case hd @ HandleDelivery(consumerTag, envelope, properties, body) =>
-      channel.basicAck(envelope.getDeliveryTag, false)
+      basicAck(channel)(envelope.getDeliveryTag)
       val correlationId = properties.getCorrelationId
       pendingRequests.get(correlationId) match {
         case None =>
@@ -53,12 +58,13 @@ class RPCClient extends ChannelKeeper {
 
   override def channelCallback(channel: Channel): Unit = {
     super.channelCallback(channel)
-    queue = Some(channel.queueDeclare("", false, true, true, Map.empty[String, AnyRef]).getQueue)
-    consumer = Some(new DefaultConsumer(channel){
-      override def handleDelivery(consumerTag: String, envelope: Envelope, properties: AMQP.BasicProperties, body: Array[Byte]): Unit =
-        self ! HandleDelivery(consumerTag, envelope, properties, body)
-    })
-    channel.basicConsume(queue.get, false, consumer.get)
+    createAndConsumeReplyQueue(channel)
+  }
+
+  private def createAndConsumeReplyQueue(channel: Channel): Unit = {
+    queue = Some(queueDeclare(channel)(QueueConfig("", durable = false, exclusive = true, autoDelete = true, Map.empty[String, AnyRef])).getQueue)
+    consumer = Some(addConsumer(channel)(self))
+    basicConsume(channel)(queue.get, autoAck = false, consumer.get)
   }
 
 }

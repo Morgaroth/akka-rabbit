@@ -1,12 +1,14 @@
 package com.coiney.akka.rabbit.example
 
 import akka.actor.ActorSystem
+import com.typesafe.config.ConfigFactory
+
 import com.coiney.akka.rabbit.RPC.Result
 import com.coiney.akka.rabbit._
 import com.coiney.akka.rabbit.messages.{ConsumeQueue, HandleDelivery}
-import com.typesafe.config.ConfigFactory
 
-class exclamationProcessor extends RPC.Processor {
+
+class ExclamationProcessor extends RPC.Processor {
   override def process(hd: HandleDelivery): Result = {
     val req = new String(hd.body)
     println(s"Received: $req")
@@ -20,9 +22,12 @@ class exclamationProcessor extends RPC.Processor {
 }
 
 
-object RPCServer extends App {
+object RPCServerExample extends App {
 
   implicit val system = ActorSystem("ProducerSystem")
+
+  // Add system shutdown hook
+  sys.addShutdownHook(system.shutdown())
 
   // load the configuration and initialize the RabbitFactory
   val cfg = ConfigFactory.load()
@@ -33,13 +38,7 @@ object RPCServer extends App {
   rabbit.waitForConnection(connectionKeeper)
 
   // create the RPC Server and wait for it to be connected
-  val rpcServer = rabbit.createRPCServer(connectionKeeper, new exclamationProcessor())
+  val rpcServer = rabbit.createRPCServer(connectionKeeper, new ExclamationProcessor(), queueConfig = Some(QueueConfig("my_queue", durable = false, exclusive = false, autoDelete = true)))
   rabbit.waitForConnection(rpcServer)
 
-  // set the queue
-  rpcServer ! ConsumeQueue("my_queue", durable = false, exclusive = false, autoDelete = true)
-
-  // Shutdown the system
-  //Thread.sleep(1000)
-  //system.shutdown()
 }

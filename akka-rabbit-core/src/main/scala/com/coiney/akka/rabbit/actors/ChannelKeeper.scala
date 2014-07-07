@@ -3,6 +3,10 @@ package com.coiney.akka.rabbit.actors
 import akka.actor._
 import com.rabbitmq.client.Channel
 
+import com.coiney.akka.pattern.WatchingObservable
+import com.coiney.akka.rabbit.ChannelConfig
+import com.coiney.akka.rabbit.messages.Request
+
 
 object ChannelKeeper {
   case class HandleChannel(channel: Channel)
@@ -11,13 +15,19 @@ object ChannelKeeper {
   case object Connected extends State
   case object Disconnected extends State
 
-  def props(): Props = Props(classOf[ChannelKeeper])
+  def apply(channelConfig: Option[ChannelConfig] = None, provision: Seq[Request] = Seq.empty[Request]): ChannelKeeper =
+    new ChannelKeeper(channelConfig, provision) with AMQPRabbitFunctions
+
+  def props(channelConfig: Option[ChannelConfig] = None, provision: Seq[Request] = Seq.empty[Request]): Props =
+    Props(ChannelKeeper(channelConfig, provision))
 }
 
 
-private[rabbit] class ChannelKeeper extends Actor
-                                    with WatchingObservable
-                                    with ActorLogging {
+private[rabbit] class ChannelKeeper(channelConfig: Option[ChannelConfig] = None,
+                                    provision: Seq[Request] = Seq.empty[Request]) extends Actor
+                                                                                  with WatchingObservable
+                                                                                  with ActorLogging {
+  this: RabbitFunctions =>
   import com.coiney.akka.rabbit.actors.ChannelKeeper._
   import com.coiney.akka.rabbit.messages._
 
@@ -27,7 +37,7 @@ private[rabbit] class ChannelKeeper extends Actor
 
   override def unhandled(message: Any): Unit = {
     message match {
-      case Terminated(dead) if observers.contains(dead) => unregisterObserver(dead, None)
+      case Terminated(dead) if observers.contains(dead) => deregisterObserver(dead, None)
       case _                                            => super.unhandled(message)
     }
   }
@@ -41,6 +51,7 @@ private[rabbit] class ChannelKeeper extends Actor
       handler ! AddShutdownListener(self)
       handler ! AddReturnListener(self)
       channelCallback(channel)
+      provision.foreach(request => self ! request)
       sendEvent(Connected)
       context.become(observeReceive(Some(Connected), None) orElse connected(channel, handler))
 
@@ -62,6 +73,8 @@ private[rabbit] class ChannelKeeper extends Actor
       context.become(observeReceive(None, None) orElse disconnected)
   }
 
-  def channelCallback(channel: Channel): Unit = {}
+  def channelCallback(channel: Channel): Unit = {
+    channelConfig.foreach(cfg => configureChannel(channel)(cfg))
+  }
 
 }

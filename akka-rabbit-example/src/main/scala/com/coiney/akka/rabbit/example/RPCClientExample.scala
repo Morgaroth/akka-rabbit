@@ -3,19 +3,23 @@ package com.coiney.akka.rabbit.example
 import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.util.Timeout
-import com.coiney.akka.rabbit.RabbitFactory
 import com.typesafe.config.ConfigFactory
+
+import com.coiney.akka.rabbit.RabbitFactory
 import com.coiney.akka.rabbit.RPC
 import com.coiney.akka.rabbit.messages._
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-object RPCClient extends App {
+object RPCClientExample extends App {
   import ExecutionContext.Implicits.global
   implicit val timeout: Timeout = 5.seconds
 
   implicit val system = ActorSystem("ProducerSystem")
+
+  // Add system shutdown hook
+  sys.addShutdownHook(system.shutdown())
 
   // load the configuration and initialize the RabbitFactory
   val cfg = ConfigFactory.load()
@@ -26,7 +30,7 @@ object RPCClient extends App {
   rabbit.waitForConnection(connectionKeeper)
 
   // create the RPC Client and wait for it to be connected
-  val rpcClient = rabbit.createRPCClient(connectionKeeper, Some("rpc-client"))
+  val rpcClient = rabbit.createRPCClient(connectionKeeper, name = Some("rpc-client"))
   rabbit.waitForConnection(rpcClient)
 
   while(true) {

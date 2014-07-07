@@ -1,13 +1,14 @@
 package com.coiney.akka.rabbit.example
 
-import akka.actor.ActorSystem
-import com.coiney.akka.rabbit.RabbitFactory
-import com.coiney.akka.rabbit.messages._
+import akka.actor.{Props, ActorSystem}
 import com.typesafe.config.ConfigFactory
 
-object Producer extends App {
+import com.coiney.akka.rabbit.{QueueConfig, RabbitFactory}
 
-  implicit val system = ActorSystem("ProducerSystem")
+
+object ConsumerExample2 extends App {
+
+  implicit val system = ActorSystem("ConsumerSystem")
 
   // load the configuration and initialize the RabbitFactory
   val cfg = ConfigFactory.load()
@@ -18,17 +19,11 @@ object Producer extends App {
   rabbit.waitForConnection(connectionKeeper)
 
   // create the producer and wait for it to be connected
-  val producer = rabbit.createProducer(connectionKeeper, Some("producer"))
-  rabbit.waitForConnection(producer)
+  val consumeActor = system.actorOf(Props(classOf[ConsumeActor]))
+  val consumer = rabbit.createConsumer(connectionKeeper, consumeActor, queueConfig = Some(QueueConfig("my_queue")), name = Some("consumer"))
+  rabbit.waitForConnection(consumer)
 
-  // set the queue
-  producer ! DeclareQueue("my_queue")
-
-  // Send a message
-  val msg = "512!!!"
-  producer ! Publish("", "my_queue", msg.getBytes)
-
-  // Shutdown the system
+  // shutdown the system
   Thread.sleep(1000)
   system.shutdown()
 }
