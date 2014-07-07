@@ -1,7 +1,7 @@
 package com.coiney.akka.rabbit.example
 
 import akka.actor.{Props, Actor, ActorSystem}
-import com.coiney.akka.rabbit.RabbitFactory
+import com.coiney.akka.rabbit.{QueueConfig, RabbitFactory}
 import com.coiney.akka.rabbit.messages._
 import com.typesafe.config.ConfigFactory
 
@@ -34,7 +34,7 @@ object Consumer extends App {
   rabbit.waitForConnection(consumer)
 
   // consume the queue
-  consumer ! ConsumeQueue("my_queue")
+  consumer ! ConsumeQueue(QueueConfig("my_queue"))
 
   // shutdown the system
   Thread.sleep(1000)

@@ -37,7 +37,7 @@ object RPCServer extends App {
   rabbit.waitForConnection(rpcServer)
 
   // set the queue
-  rpcServer ! ConsumeQueue("my_queue", durable = false, exclusive = false, autoDelete = true)
+  rpcServer ! ConsumeQueue(QueueConfig("my_queue", durable = false, exclusive = false, autoDelete = true))
 
   // Shutdown the system
   //Thread.sleep(1000)

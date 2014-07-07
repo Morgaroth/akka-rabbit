@@ -25,9 +25,8 @@ class RPCServer(processor: Processor, channelConfig: Option[ChannelConfig] = Non
   override def connected(channel: Channel, handler: ActorRef): Actor.Receive = rpcServerConnected(channel) orElse super.connected(channel, handler)
 
   def rpcServerConnected(channel: Channel): Actor.Receive = {
-    case req @ ConsumeQueue(name, durable, exclusive, autoDelete, arguments) =>
-      queueDeclare(channel)(QueueConfig(name, durable, exclusive, autoDelete, arguments))
-      basicConsume(channel)(name, autoAck = false, consumer.get)
+    case req @ ConsumeQueue(queueConfig) =>
+      queueConsume(channel)(queueConfig, autoAck = false, consumer.get)
 
     case req @ ConsumeBinding(exchangeName, exchangeType, queueName, routingKey, exchangeDurable, exchangeAutoDelete, queueDurable, queueExclusive, queueAutoDelete, exchangeArgs, queueArgs, bindingArgs) =>
       exchangeDeclare(channel)(ExchangeConfig(exchangeName, exchangeType, exchangeDurable, exchangeAutoDelete, exchangeArgs))

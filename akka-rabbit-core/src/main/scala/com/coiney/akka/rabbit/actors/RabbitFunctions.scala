@@ -28,6 +28,7 @@ trait RabbitFunctions {
   def queuePurge(channel: Channel)(name: String): Queue.PurgeOk
   def queueBind(channel: Channel)(name: String, exchange: String, routingKey: String, arguments: Map[String, AnyRef]): Queue.BindOk
   def queueUnbind(channel: Channel)(name: String, exchange: String, routingKey: String): Queue.UnbindOk
+  def queueConsume(channel: Channel)(queueConfig: QueueConfig, autoAck: Boolean, consumer: DefaultConsumer): String
   def exchangeDeclare(channel: Channel)(exchangeConfig: ExchangeConfig): Exchange.DeclareOk
   def exchangeDeclarePassive(channel: Channel)(name: String): Exchange.DeclareOk
   def exchangeDelete(channel: Channel)(name: String): Exchange.DeleteOk
@@ -115,6 +116,12 @@ trait AMQPRabbitFunctions extends RabbitFunctions {
 
   def queueUnbind(channel: Channel)(name: String, exchange: String, routingKey: String): Queue.UnbindOk = {
     channel.queueUnbind(name, exchange, routingKey)
+  }
+
+  def queueConsume(channel: Channel)(queueConfig: QueueConfig, autoAck: Boolean, consumer: DefaultConsumer): String = {
+    queueDeclare(channel)(queueConfig)
+    val consumerTag = basicConsume(channel)(queueConfig.name, autoAck, consumer)
+    consumerTag
   }
 
   def exchangeDeclare(channel: Channel)(exchangeConfig: ExchangeConfig): Exchange.DeclareOk = {

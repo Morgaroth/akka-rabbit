@@ -22,12 +22,11 @@ class Consumer(listener: ActorRef, autoAck: Boolean = false, channelConfig: Opti
   override def connected(channel: Channel, handler: ActorRef) = consumerConnected(channel, handler) orElse super.connected(channel, handler)
 
   def consumerConnected(channel: Channel, handler: ActorRef): Actor.Receive = {
-    case req @ ConsumeQueue(name, durable, exclusive, autoDelete, arguments) => consumer match {
+    case req @ ConsumeQueue(queueConfig) => consumer match {
       case None    => log.debug("Channel is not a consumer.")
       case Some(c) =>
         sender ! handleRequest(req){ () =>
-          queueDeclare(channel)(QueueConfig(name, durable, exclusive, autoDelete, arguments))
-          val consumerTag = basicConsume(channel)(name, autoAck, c)
+          val consumerTag = queueConsume(channel)(queueConfig, autoAck, c)
           log.debug(s"Consuming using $consumerTag.")
           consumerTag
         }
