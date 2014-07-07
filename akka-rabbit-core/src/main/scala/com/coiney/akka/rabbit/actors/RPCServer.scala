@@ -2,11 +2,11 @@ package com.coiney.akka.rabbit.actors
 
 import akka.actor.SupervisorStrategy.Stop
 import akka.actor.{OneForOneStrategy, Actor, ActorRef, Props}
-import com.coiney.akka.rabbit.{ExchangeConfig, QueueConfig, ChannelConfig}
-import com.rabbitmq.client.{AMQP, Channel, DefaultConsumer, Envelope}
+import com.rabbitmq.client.{Channel, DefaultConsumer}
 
 import scala.concurrent.duration._
 
+import com.coiney.akka.rabbit.{ExchangeConfig, QueueConfig, ChannelConfig}
 import com.coiney.akka.rabbit.RPC._
 
 

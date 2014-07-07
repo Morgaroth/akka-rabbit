@@ -1,11 +1,9 @@
 package com.coiney.akka.rabbit.actors
 
 import akka.actor.{Actor, ActorRef, Props}
-import com.coiney.akka.rabbit.{ExchangeConfig, QueueConfig, ChannelConfig}
-import com.rabbitmq.client.{DefaultConsumer, Envelope, AMQP, Channel}
+import com.rabbitmq.client.{DefaultConsumer, Channel}
 
-import scala.collection.JavaConversions._
-import scala.util.{Failure, Success, Try}
+import com.coiney.akka.rabbit.{ExchangeConfig, QueueConfig, ChannelConfig}
 
 
 object Consumer {

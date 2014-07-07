@@ -1,8 +1,9 @@
 package com.coiney.akka.rabbit.actors
 
 import akka.actor._
-import com.coiney.akka.rabbit.ChannelConfig
 import com.rabbitmq.client.Channel
+
+import com.coiney.akka.rabbit.ChannelConfig
 
 
 object ChannelKeeper {

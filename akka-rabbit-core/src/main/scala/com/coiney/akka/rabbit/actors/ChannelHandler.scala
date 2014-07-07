@@ -3,7 +3,7 @@ package com.coiney.akka.rabbit.actors
 import akka.actor.{Actor, ActorLogging, Props}
 import com.rabbitmq.client._
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 
 private[rabbit] object ChannelHandler {

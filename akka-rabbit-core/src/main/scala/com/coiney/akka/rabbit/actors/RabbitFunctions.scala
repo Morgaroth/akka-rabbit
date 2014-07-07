@@ -1,12 +1,14 @@
 package com.coiney.akka.rabbit.actors
 
 import akka.actor.ActorRef
-import com.coiney.akka.rabbit.{ExchangeConfig, QueueConfig, ChannelConfig}
 import com.rabbitmq.client.AMQP.{Queue, Exchange, Tx}
 import com.rabbitmq.client._
 
+import com.coiney.akka.rabbit.{ExchangeConfig, QueueConfig, ChannelConfig}
+
 import scala.collection.JavaConversions._
 import scala.concurrent.duration.FiniteDuration
+
 
 trait RabbitFunctions {
   import com.coiney.akka.rabbit.messages._

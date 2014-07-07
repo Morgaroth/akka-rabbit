@@ -1,11 +1,10 @@
 package com.coiney.akka.rabbit.actors
 
 import akka.actor.{ActorRef, Actor, Props}
+import com.rabbitmq.client.{AMQP, DefaultConsumer, Channel}
+
 import com.coiney.akka.rabbit.messages.HandleDelivery
 import com.coiney.akka.rabbit.{QueueConfig, ChannelConfig, RPC}
-import com.rabbitmq.client.{AMQP, Envelope, DefaultConsumer, Channel}
-
-import scala.collection.JavaConversions._
 
 
 object RPCClient {
