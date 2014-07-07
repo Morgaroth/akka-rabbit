@@ -1,22 +1,12 @@
 package com.coiney.akka.rabbit.example
 
-import akka.actor.{Props, Actor, ActorSystem}
-import com.coiney.akka.rabbit.{QueueConfig, RabbitFactory}
-import com.coiney.akka.rabbit.messages._
+import akka.actor.{Props, ActorSystem}
 import com.typesafe.config.ConfigFactory
 
-
-class ConsumeActor extends Actor {
-  override def receive: Actor.Receive = {
-    case HandleDelivery(consumerTag, envelope, properties, body) =>
-      println(new String(body))
-      sender ! Ack(envelope.getDeliveryTag)
-    case HandleCancel(consumerTag) => ()
-  }
-}
+import com.coiney.akka.rabbit.{QueueConfig, RabbitFactory}
 
 
-object Consumer extends App {
+object ConsumerExample2 extends App {
 
   implicit val system = ActorSystem("ConsumerSystem")
 
@@ -30,11 +20,8 @@ object Consumer extends App {
 
   // create the producer and wait for it to be connected
   val consumeActor = system.actorOf(Props(classOf[ConsumeActor]))
-  val consumer = rabbit.createConsumer(connectionKeeper, consumeActor, name = Some("consumer"))
+  val consumer = rabbit.createConsumer(connectionKeeper, consumeActor, queueConfig = Some(QueueConfig("my_queue")), name = Some("consumer"))
   rabbit.waitForConnection(consumer)
-
-  // consume the queue
-  consumer ! ConsumeQueue(QueueConfig("my_queue"))
 
   // shutdown the system
   Thread.sleep(1000)

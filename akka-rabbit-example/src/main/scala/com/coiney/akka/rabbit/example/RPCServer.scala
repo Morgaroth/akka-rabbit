@@ -1,10 +1,12 @@
 package com.coiney.akka.rabbit.example
 
 import akka.actor.ActorSystem
+import com.typesafe.config.ConfigFactory
+
 import com.coiney.akka.rabbit.RPC.Result
 import com.coiney.akka.rabbit._
 import com.coiney.akka.rabbit.messages.{ConsumeQueue, HandleDelivery}
-import com.typesafe.config.ConfigFactory
+
 
 class exclamationProcessor extends RPC.Processor {
   override def process(hd: HandleDelivery): Result = {

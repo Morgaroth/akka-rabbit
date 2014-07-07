@@ -3,8 +3,9 @@ package com.coiney.akka.rabbit.example
 import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.util.Timeout
-import com.coiney.akka.rabbit.RabbitFactory
 import com.typesafe.config.ConfigFactory
+
+import com.coiney.akka.rabbit.RabbitFactory
 import com.coiney.akka.rabbit.RPC
 import com.coiney.akka.rabbit.messages._
 
