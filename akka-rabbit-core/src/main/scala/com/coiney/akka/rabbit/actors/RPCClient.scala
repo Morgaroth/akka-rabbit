@@ -2,7 +2,7 @@ package com.coiney.akka.rabbit.actors
 
 import akka.actor.{ActorRef, Actor, Props}
 import com.coiney.akka.rabbit.messages.HandleDelivery
-import com.coiney.akka.rabbit.RPC
+import com.coiney.akka.rabbit.{ChannelConfig, RPC}
 import com.rabbitmq.client.{AMQP, Envelope, DefaultConsumer, Channel}
 
 import scala.collection.JavaConversions._
@@ -11,12 +11,12 @@ import scala.collection.JavaConversions._
 object RPCClient {
   case class PendingRequest(sender: ActorRef, expectedNumberOfResponses: Int, handleDeliveries: List[HandleDelivery])
 
-  def apply(): RPCClient = new RPCClient() with AMQPRabbitFunctions
+  def apply(channelConfig: Option[ChannelConfig] = None): RPCClient = new RPCClient(channelConfig) with AMQPRabbitFunctions
 
-  def props(): Props = Props(RPCClient())
+  def props(channelConfig: Option[ChannelConfig] = None): Props = Props(RPCClient(channelConfig))
 }
 
-class RPCClient extends ChannelKeeper {
+class RPCClient(channelConfig: Option[ChannelConfig] = None) extends ChannelKeeper(channelConfig) {
   this: RabbitFunctions =>
   import RPCClient._
   import com.coiney.akka.rabbit.messages._

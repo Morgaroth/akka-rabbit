@@ -1,6 +1,7 @@
 package com.coiney.akka.rabbit.actors
 
 import akka.actor.ActorRef
+import com.coiney.akka.rabbit.ChannelConfig
 import com.rabbitmq.client.AMQP.{Queue, Exchange, Tx}
 import com.rabbitmq.client._
 
@@ -43,6 +44,8 @@ trait RabbitFunctions {
   def waitForConfirmsOrDie(channel: Channel)(timeout: Option[FiniteDuration]): Unit
   def addConsumer(channel: Channel)(listener: ActorRef): DefaultConsumer
   def closeChannel(channel: Channel): Unit
+
+  def configureChannel(channel: Channel)(channelConfig: ChannelConfig): Unit
 }
 
 
@@ -200,6 +203,11 @@ trait AMQPRabbitFunctions extends RabbitFunctions {
 
   def closeChannel(channel: Channel): Unit = {
     channel.close()
+  }
+
+  def configureChannel(channel: Channel)(channelConfig: ChannelConfig): Unit = {
+    basicQoS(channel)(channelConfig.channelPrefetchCount, global = true)
+    basicQoS(channel)(channelConfig.consumerPrefetchCount, global = false)
   }
 
 }

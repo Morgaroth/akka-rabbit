@@ -2,6 +2,7 @@ package com.coiney.akka.rabbit.actors
 
 import akka.actor.SupervisorStrategy.Stop
 import akka.actor.{OneForOneStrategy, Actor, ActorRef, Props}
+import com.coiney.akka.rabbit.ChannelConfig
 import com.rabbitmq.client.{AMQP, Channel, DefaultConsumer, Envelope}
 
 import scala.concurrent.duration._
@@ -10,12 +11,12 @@ import com.coiney.akka.rabbit.RPC._
 
 
 object RPCServer {
-  def apply(processor: Processor): RPCServer = new RPCServer(processor) with AMQPRabbitFunctions
+  def apply(processor: Processor, channelConfig: Option[ChannelConfig] = None): RPCServer = new RPCServer(processor, channelConfig) with AMQPRabbitFunctions
 
-  def props(processor: Processor): Props = Props(RPCServer(processor))
+  def props(processor: Processor, channelConfig: Option[ChannelConfig] = None): Props = Props(RPCServer(processor, channelConfig))
 }
 
-class RPCServer(processor: Processor) extends ChannelKeeper {
+class RPCServer(processor: Processor, channelConfig: Option[ChannelConfig] = None) extends ChannelKeeper(channelConfig) {
   this: RabbitFunctions =>
   import com.coiney.akka.rabbit.messages._
 

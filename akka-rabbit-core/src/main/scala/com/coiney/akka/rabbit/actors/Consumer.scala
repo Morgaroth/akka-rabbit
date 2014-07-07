@@ -1,6 +1,7 @@
 package com.coiney.akka.rabbit.actors
 
 import akka.actor.{Actor, ActorRef, Props}
+import com.coiney.akka.rabbit.ChannelConfig
 import com.rabbitmq.client.{DefaultConsumer, Envelope, AMQP, Channel}
 
 import scala.collection.JavaConversions._
@@ -8,13 +9,13 @@ import scala.util.{Failure, Success, Try}
 
 
 object Consumer {
-  def apply(listener: ActorRef, autoAck: Boolean): Consumer = new Consumer(listener, autoAck) with AMQPRabbitFunctions with RequestHandler
+  def apply(listener: ActorRef, autoAck: Boolean = false, channelConfig: Option[ChannelConfig] = None): Consumer = new Consumer(listener, autoAck, channelConfig) with AMQPRabbitFunctions with RequestHandler
 
-  def props(listener: ActorRef, autoAck: Boolean = false): Props = Props(Consumer(listener, autoAck))
+  def props(listener: ActorRef, autoAck: Boolean = false, channelConfig: Option[ChannelConfig] = None): Props = Props(Consumer(listener, autoAck, channelConfig))
 }
 
 
-class Consumer(listener: ActorRef, autoAck: Boolean = false) extends ChannelKeeper {
+class Consumer(listener: ActorRef, autoAck: Boolean = false, channelConfig: Option[ChannelConfig] = None) extends ChannelKeeper(channelConfig) {
   this: RabbitFunctions with RequestHandler =>
   import com.coiney.akka.rabbit.messages._
 

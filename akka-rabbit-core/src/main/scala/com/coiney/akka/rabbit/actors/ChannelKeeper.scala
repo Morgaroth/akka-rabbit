@@ -1,6 +1,7 @@
 package com.coiney.akka.rabbit.actors
 
 import akka.actor._
+import com.coiney.akka.rabbit.ChannelConfig
 import com.rabbitmq.client.Channel
 
 
@@ -11,15 +12,16 @@ object ChannelKeeper {
   case object Connected extends State
   case object Disconnected extends State
 
-  def apply(): ChannelKeeper = new ChannelKeeper
+  def apply(channelConfig: Option[ChannelConfig] = None): ChannelKeeper = new ChannelKeeper(channelConfig) with AMQPRabbitFunctions
 
-  def props(): Props = Props(ChannelKeeper())
+  def props(channelConfig: Option[ChannelConfig] = None): Props = Props(ChannelKeeper(channelConfig))
 }
 
 
-private[rabbit] class ChannelKeeper extends Actor
-                                    with WatchingObservable
-                                    with ActorLogging {
+private[rabbit] class ChannelKeeper(channelConfig: Option[ChannelConfig] = None) extends Actor
+                                                                                 with WatchingObservable
+                                                                                 with ActorLogging {
+  this: RabbitFunctions =>
   import com.coiney.akka.rabbit.actors.ChannelKeeper._
   import com.coiney.akka.rabbit.messages._
 
@@ -64,6 +66,8 @@ private[rabbit] class ChannelKeeper extends Actor
       context.become(observeReceive(None, None) orElse disconnected)
   }
 
-  def channelCallback(channel: Channel): Unit = {}
+  def channelCallback(channel: Channel): Unit = {
+    channelConfig.foreach(cfg => configureChannel(channel)(cfg))
+  }
 
 }

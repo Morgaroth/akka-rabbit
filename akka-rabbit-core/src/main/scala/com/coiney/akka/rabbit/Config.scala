@@ -33,7 +33,7 @@ case class ConnectionConfig (
 
 case class ChannelConfig (
   consumerPrefetchCount: Int,
-  channelPrefetchCount: Int
+  channelPrefetchCount: Int = 0
 )
 
 

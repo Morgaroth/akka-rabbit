@@ -18,7 +18,7 @@ object Producer extends App {
   rabbit.waitForConnection(connectionKeeper)
 
   // create the producer and wait for it to be connected
-  val producer = rabbit.createProducer(connectionKeeper, Some("producer"))
+  val producer = rabbit.createProducer(connectionKeeper, name = Some("producer"))
   rabbit.waitForConnection(producer)
 
   // set the queue
