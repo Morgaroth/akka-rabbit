@@ -26,6 +26,9 @@ object RPCServerExample extends App {
 
   implicit val system = ActorSystem("ProducerSystem")
 
+  // Add system shutdown hook
+  sys.addShutdownHook(system.shutdown())
+
   // load the configuration and initialize the RabbitFactory
   val cfg = ConfigFactory.load()
   val rabbit = RabbitFactory(cfg)
@@ -41,7 +44,4 @@ object RPCServerExample extends App {
   // set the queue
   rpcServer ! ConsumeQueue(QueueConfig("my_queue", durable = false, exclusive = false, autoDelete = true))
 
-  // Shutdown the system
-  //Thread.sleep(1000)
-  //system.shutdown()
 }
