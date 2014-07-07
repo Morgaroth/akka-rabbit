@@ -16,12 +16,12 @@ object Versions {
   val logback       = "1.1.2"
   val scalatest     = "2.2.0"
 
-  val akkapatterns  = "0.1.0-SNAPSHOT"
+  val akkapatterns  = "0.1.0"
 }
 
 object BuildSettings {
   val buildName                 = "akka-rabbit"
-  val buildVersion              = "0.2.0-SNAPSHOT"
+  val buildVersion              = "0.2.0"
   val buildScalaVersion         = Versions.scala
   val buildJvmVersion           = Versions.jvm
 
