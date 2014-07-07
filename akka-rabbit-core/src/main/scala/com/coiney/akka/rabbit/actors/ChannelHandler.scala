@@ -39,9 +39,9 @@ private[rabbit] class ChannelHandler(channel: Channel) extends Actor
         addShutdownListener(channel)(listener)
       }
 
-    case req @ DeclareQueue(name, durable, exclusive, autoDelete, arguments) =>
+    case req @ DeclareQueue(queueConfig) =>
       sender ! handleRequest(req){ () =>
-        queueDeclare(channel)(name, durable, exclusive, autoDelete, arguments)
+        queueDeclare(channel)(queueConfig)
       }
 
     case req @ DeclareQueuePassive(name) =>

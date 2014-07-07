@@ -13,7 +13,7 @@ package object messages {
   case class AddReturnListener(listener: ActorRef) extends Request
   case class AddShutdownListener(listener: ActorRef) extends Request
 
-  case class DeclareQueue(name: String, durable: Boolean = false, exclusive: Boolean = false, autoDelete: Boolean = true, arguments: Map[String, AnyRef] = Map.empty) extends Request
+  case class DeclareQueue(queueConfig: QueueConfig) extends Request
   case class DeclareQueuePassive(name: String) extends Request
   case class DeleteQueue(name: String, ifUnused: Boolean = false, ifEmpty: Boolean = false) extends Request
   case class PurgeQueue(name: String) extends Request

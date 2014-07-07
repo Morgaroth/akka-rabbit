@@ -1,7 +1,7 @@
 package com.coiney.akka.rabbit.actors
 
 import akka.actor.ActorRef
-import com.coiney.akka.rabbit.ChannelConfig
+import com.coiney.akka.rabbit.{QueueConfig, ChannelConfig}
 import com.rabbitmq.client.AMQP.{Queue, Exchange, Tx}
 import com.rabbitmq.client._
 
@@ -20,7 +20,7 @@ trait RabbitFunctions {
   def addConfirmListener(channel: Channel)(listener: ActorRef): Unit
   def addReturnListener(channel: Channel)(listener: ActorRef): Unit
   def addShutdownListener(channel: Channel)(listener: ActorRef): Unit
-  def queueDeclare(channel: Channel)(name: String, durable: Boolean, exclusive: Boolean, autoDelete: Boolean, arguments: Map[String, AnyRef]): Queue.DeclareOk
+  def queueDeclare(channel: Channel)(queueConfig: QueueConfig): Queue.DeclareOk
   def queueDeclarePassive(channel: Channel)(name: String): Queue.DeclareOk
   def queueDelete(channel: Channel)(name: String, ifUnused: Boolean, ifEmpty: Boolean): Queue.DeleteOk
   def queuePurge(channel: Channel)(name: String): Queue.PurgeOk
@@ -91,8 +91,8 @@ trait AMQPRabbitFunctions extends RabbitFunctions {
     })
   }
 
-  def queueDeclare(channel: Channel)(name: String, durable: Boolean, exclusive: Boolean, autoDelete: Boolean, arguments: Map[String, AnyRef]): Queue.DeclareOk = {
-    channel.queueDeclare(name, durable, exclusive, autoDelete, arguments)
+  def queueDeclare(channel: Channel)(queueConfig: QueueConfig): Queue.DeclareOk = {
+    channel.queueDeclare(queueConfig.name, queueConfig.durable, queueConfig.exclusive, queueConfig.autoDelete, queueConfig.arguments)
   }
 
   def queueDeclarePassive(channel: Channel)(name: String): Queue.DeclareOk = {

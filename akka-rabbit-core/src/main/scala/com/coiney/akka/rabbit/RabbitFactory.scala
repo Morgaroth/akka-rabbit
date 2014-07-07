@@ -49,7 +49,7 @@ trait RabbitFactory {
     Await.result(futureRPCServer, timeout)
   }
 
-  def createRPCClient(connectionKeeper: ActorRef, channelConfig: Option[ChannelConfig], name: Option[String] = None, timeout: FiniteDuration = 5000.millis): ActorRef = {
+  def createRPCClient(connectionKeeper: ActorRef, channelConfig: Option[ChannelConfig] = None, name: Option[String] = None, timeout: FiniteDuration = 5000.millis): ActorRef = {
     val futureRPCClient = (connectionKeeper ? ConnectionKeeper.CreateChild(RPCClient.props(channelConfig), name))(timeout).mapTo[ActorRef]
     Await.result(futureRPCClient, timeout)
   }

@@ -26,7 +26,7 @@ object RPCClient extends App {
   rabbit.waitForConnection(connectionKeeper)
 
   // create the RPC Client and wait for it to be connected
-  val rpcClient = rabbit.createRPCClient(connectionKeeper, Some("rpc-client"))
+  val rpcClient = rabbit.createRPCClient(connectionKeeper, name = Some("rpc-client"))
   rabbit.waitForConnection(rpcClient)
 
   while(true) {

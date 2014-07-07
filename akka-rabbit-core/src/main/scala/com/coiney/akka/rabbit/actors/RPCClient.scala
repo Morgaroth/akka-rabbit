@@ -2,7 +2,7 @@ package com.coiney.akka.rabbit.actors
 
 import akka.actor.{ActorRef, Actor, Props}
 import com.coiney.akka.rabbit.messages.HandleDelivery
-import com.coiney.akka.rabbit.{ChannelConfig, RPC}
+import com.coiney.akka.rabbit.{QueueConfig, ChannelConfig, RPC}
 import com.rabbitmq.client.{AMQP, Envelope, DefaultConsumer, Channel}
 
 import scala.collection.JavaConversions._
@@ -60,7 +60,7 @@ class RPCClient(channelConfig: Option[ChannelConfig] = None) extends ChannelKeep
   }
 
   private def createAndConsumeReplyQueue(channel: Channel): Unit = {
-    queue = Some(queueDeclare(channel)("", durable = false, exclusive = true, autoDelete = true, Map.empty[String, AnyRef]).getQueue)
+    queue = Some(queueDeclare(channel)(QueueConfig("", durable = false, exclusive = true, autoDelete = true, Map.empty[String, AnyRef])).getQueue)
     consumer = Some(addConsumer(channel)(self))
     basicConsume(channel)(queue.get, autoAck = false, consumer.get)
   }

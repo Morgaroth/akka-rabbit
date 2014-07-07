@@ -30,7 +30,7 @@ object Consumer extends App {
 
   // create the producer and wait for it to be connected
   val consumeActor = system.actorOf(Props(classOf[ConsumeActor]))
-  val consumer = rabbit.createConsumer(connectionKeeper, consumeActor, Some("consumer"))
+  val consumer = rabbit.createConsumer(connectionKeeper, consumeActor, name = Some("consumer"))
   rabbit.waitForConnection(consumer)
 
   // consume the queue

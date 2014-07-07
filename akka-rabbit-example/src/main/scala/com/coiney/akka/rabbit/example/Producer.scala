@@ -1,7 +1,7 @@
 package com.coiney.akka.rabbit.example
 
 import akka.actor.ActorSystem
-import com.coiney.akka.rabbit.RabbitFactory
+import com.coiney.akka.rabbit.{QueueConfig, RabbitFactory}
 import com.coiney.akka.rabbit.messages._
 import com.typesafe.config.ConfigFactory
 
@@ -22,7 +22,7 @@ object Producer extends App {
   rabbit.waitForConnection(producer)
 
   // set the queue
-  producer ! DeclareQueue("my_queue")
+  producer ! DeclareQueue(QueueConfig("my_queue"))
 
   // Send a message
   val msg = "512!!!"
