@@ -1,6 +1,6 @@
 package com.coiney.akka.rabbit
 
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.Config
 
 trait RabbitConfiguration {
   def config: RabbitConfig

@@ -4,7 +4,7 @@ import java.util.concurrent.{CountDownLatch, ExecutorService}
 
 import akka.actor._
 import akka.pattern.ask
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.Config
 import com.rabbitmq.client.ConnectionFactory
 import actors._
 
