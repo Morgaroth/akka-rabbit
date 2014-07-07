@@ -18,9 +18,11 @@ object ConnectionKeeper {
   case object Connected extends State
   case object Disconnected extends State
 
-  def apply(connectionFactory: ConnectionFactory): ConnectionKeeper = new ConnectionKeeper(connectionFactory) with AMQPRabbitFunctions
+  def apply(connectionFactory: ConnectionFactory): ConnectionKeeper =
+    new ConnectionKeeper(connectionFactory) with AMQPRabbitFunctions
 
-  def props(connectionFactory: ConnectionFactory): Props = Props(ConnectionKeeper(connectionFactory))
+  def props(connectionFactory: ConnectionFactory): Props =
+    Props(ConnectionKeeper(connectionFactory))
 }
 
 

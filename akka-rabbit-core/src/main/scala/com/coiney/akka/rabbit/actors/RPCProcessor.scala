@@ -9,9 +9,11 @@ import com.coiney.akka.rabbit.RPC._
 
 
 private[rabbit] object RPCProcessor {
-  def apply(processor: Processor, channel: Channel): RPCProcessor = new RPCProcessor(processor, channel) with AMQPRabbitFunctions
+  def apply(processor: Processor, channel: Channel): RPCProcessor =
+    new RPCProcessor(processor, channel) with AMQPRabbitFunctions
 
-  def props(processor: Processor, channel: Channel): Props = Props(RPCProcessor(processor, channel))
+  def props(processor: Processor, channel: Channel): Props =
+    Props(RPCProcessor(processor, channel))
 }
 
 private[rabbit] class RPCProcessor(processor: Processor, channel: Channel) extends Actor

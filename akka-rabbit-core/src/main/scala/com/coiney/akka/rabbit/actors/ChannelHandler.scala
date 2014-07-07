@@ -7,9 +7,11 @@ import scala.util.Try
 
 
 private[rabbit] object ChannelHandler {
-  def apply(channel: Channel): ChannelHandler = new ChannelHandler(channel) with AMQPRabbitFunctions with RequestHandler
+  def apply(channel: Channel): ChannelHandler =
+    new ChannelHandler(channel) with AMQPRabbitFunctions with RequestHandler
 
-  def props(channel: Channel): Props = Props(ChannelHandler(channel))
+  def props(channel: Channel): Props =
+    Props(ChannelHandler(channel))
 }
 
 
