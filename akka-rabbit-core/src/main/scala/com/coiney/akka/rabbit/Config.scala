@@ -32,7 +32,8 @@ case class ConnectionConfig (
 
 
 case class ChannelConfig (
-  QoS: Int
+  consumerPrefetchCount: Int,
+  channelPrefetchCount: Int
 )
 
 
