@@ -52,7 +52,11 @@ trait RabbitFactory {
     Await.result(futureConsumer, timeout)
   }
 
-  def createRPCServer(connectionKeeper: ActorRef, processor: RPC.Processor, channelConfig: Option[ChannelConfig] = None, provision: Seq[Request] = Seq.empty[Request], name: Option[String] = None, timeout: FiniteDuration = 5000.millis): ActorRef = {
+  def createRPCServer(connectionKeeper: ActorRef, processor: RPC.Processor, channelConfig: Option[ChannelConfig] = None, queueConfig: Option[QueueConfig] = None, name: Option[String] = None, timeout: FiniteDuration = 5000.millis): ActorRef = {
+    val provision: Seq[Request] = queueConfig match {
+      case Some(cfg) => Seq(ConsumeQueue(cfg))
+      case None      => Seq.empty[Request]
+    }
     val futureRPCServer = (connectionKeeper ? ConnectionKeeper.CreateChild(RPCServer.props(processor, channelConfig, provision), name))(timeout).mapTo[ActorRef]
     Await.result(futureRPCServer, timeout)
   }

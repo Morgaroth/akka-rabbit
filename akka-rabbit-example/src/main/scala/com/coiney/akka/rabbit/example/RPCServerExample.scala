@@ -38,10 +38,7 @@ object RPCServerExample extends App {
   rabbit.waitForConnection(connectionKeeper)
 
   // create the RPC Server and wait for it to be connected
-  val rpcServer = rabbit.createRPCServer(connectionKeeper, new ExclamationProcessor())
+  val rpcServer = rabbit.createRPCServer(connectionKeeper, new ExclamationProcessor(), queueConfig = Some(QueueConfig("my_queue", durable = false, exclusive = false, autoDelete = true)))
   rabbit.waitForConnection(rpcServer)
-
-  // set the queue
-  rpcServer ! ConsumeQueue(QueueConfig("my_queue", durable = false, exclusive = false, autoDelete = true))
 
 }
