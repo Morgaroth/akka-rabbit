@@ -2,7 +2,7 @@ package com.coiney.akka.rabbit.actors
 
 import akka.actor.SupervisorStrategy.Stop
 import akka.actor.{OneForOneStrategy, Actor, ActorRef, Props}
-import com.coiney.akka.rabbit.{QueueConfig, ChannelConfig}
+import com.coiney.akka.rabbit.{ExchangeConfig, QueueConfig, ChannelConfig}
 import com.rabbitmq.client.{AMQP, Channel, DefaultConsumer, Envelope}
 
 import scala.concurrent.duration._
@@ -30,7 +30,7 @@ class RPCServer(processor: Processor, channelConfig: Option[ChannelConfig] = Non
       basicConsume(channel)(name, autoAck = false, consumer.get)
 
     case req @ ConsumeBinding(exchangeName, exchangeType, queueName, routingKey, exchangeDurable, exchangeAutoDelete, queueDurable, queueExclusive, queueAutoDelete, exchangeArgs, queueArgs, bindingArgs) =>
-      exchangeDeclare(channel)(exchangeName, exchangeType, exchangeDurable, exchangeAutoDelete, exchangeArgs)
+      exchangeDeclare(channel)(ExchangeConfig(exchangeName, exchangeType, exchangeDurable, exchangeAutoDelete, exchangeArgs))
       queueDeclare(channel)(QueueConfig(queueName, queueDurable, queueExclusive, queueAutoDelete, queueArgs))
       queueBind(channel)(queueName, exchangeName, routingKey, exchangeArgs)
       basicConsume(channel)(queueName, autoAck = false, consumer.get)

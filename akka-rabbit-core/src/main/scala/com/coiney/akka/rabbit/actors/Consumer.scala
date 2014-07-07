@@ -1,7 +1,7 @@
 package com.coiney.akka.rabbit.actors
 
 import akka.actor.{Actor, ActorRef, Props}
-import com.coiney.akka.rabbit.{QueueConfig, ChannelConfig}
+import com.coiney.akka.rabbit.{ExchangeConfig, QueueConfig, ChannelConfig}
 import com.rabbitmq.client.{DefaultConsumer, Envelope, AMQP, Channel}
 
 import scala.collection.JavaConversions._
@@ -39,7 +39,7 @@ class Consumer(listener: ActorRef, autoAck: Boolean = false, channelConfig: Opti
       case None    => log.debug("Channel is not a consumer.")
       case Some(c) =>
         sender ! handleRequest(req){ () =>
-          exchangeDeclare(channel)(exchangeName, exchangeType, exchangeDurable, exchangeAutoDelete, exchangeArgs)
+          exchangeDeclare(channel)(ExchangeConfig(exchangeName, exchangeType, exchangeDurable, exchangeAutoDelete, exchangeArgs))
           queueDeclare(channel)(QueueConfig(queueName, queueDurable, queueExclusive, queueAutoDelete, queueArgs))
           queueBind(channel)(queueName, exchangeName, routingKey, exchangeArgs)
           val consumerTag = basicConsume(channel)(queueName, autoAck, c)

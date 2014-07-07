@@ -1,7 +1,7 @@
 package com.coiney.akka.rabbit.actors
 
 import akka.actor.ActorRef
-import com.coiney.akka.rabbit.{QueueConfig, ChannelConfig}
+import com.coiney.akka.rabbit.{ExchangeConfig, QueueConfig, ChannelConfig}
 import com.rabbitmq.client.AMQP.{Queue, Exchange, Tx}
 import com.rabbitmq.client._
 
@@ -26,7 +26,7 @@ trait RabbitFunctions {
   def queuePurge(channel: Channel)(name: String): Queue.PurgeOk
   def queueBind(channel: Channel)(name: String, exchange: String, routingKey: String, arguments: Map[String, AnyRef]): Queue.BindOk
   def queueUnbind(channel: Channel)(name: String, exchange: String, routingKey: String): Queue.UnbindOk
-  def exchangeDeclare(channel: Channel)(name: String, exchangeType: String, durable: Boolean, autoDelete: Boolean, arguments: Map[String, AnyRef]): Exchange.DeclareOk
+  def exchangeDeclare(channel: Channel)(exchangeConfig: ExchangeConfig): Exchange.DeclareOk
   def exchangeDeclarePassive(channel: Channel)(name: String): Exchange.DeclareOk
   def exchangeDelete(channel: Channel)(name: String): Exchange.DeleteOk
   def exchangeBind(channel: Channel)(destination: String, source: String, routingKey: String, arguments: Map[String, AnyRef]): Exchange.BindOk
@@ -115,8 +115,8 @@ trait AMQPRabbitFunctions extends RabbitFunctions {
     channel.queueUnbind(name, exchange, routingKey)
   }
 
-  def exchangeDeclare(channel: Channel)(name: String, exchangeType: String, durable: Boolean, autoDelete: Boolean, arguments: Map[String, AnyRef]): Exchange.DeclareOk = {
-    channel.exchangeDeclare(name, exchangeType, durable, autoDelete, arguments)
+  def exchangeDeclare(channel: Channel)(exchangeConfig: ExchangeConfig): Exchange.DeclareOk = {
+    channel.exchangeDeclare(exchangeConfig.name, exchangeConfig.exchangeType, exchangeConfig.durable, exchangeConfig.autoDelete, exchangeConfig.arguments)
   }
 
   def exchangeDeclarePassive(channel: Channel)(name: String): Exchange.DeclareOk = {

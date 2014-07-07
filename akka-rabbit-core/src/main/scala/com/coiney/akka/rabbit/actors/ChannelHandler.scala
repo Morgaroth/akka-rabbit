@@ -69,9 +69,9 @@ private[rabbit] class ChannelHandler(channel: Channel) extends Actor
         queueUnbind(channel)(name, exchange, routingKey)
       }
 
-    case req @ DeclareExchange(name, exchangeType, durable, autoDelete, arguments) =>
+    case req @ DeclareExchange(exchangeConfig) =>
       sender ! handleRequest(req){ () =>
-        exchangeDeclare(channel)(name, exchangeType, durable, autoDelete, arguments)
+        exchangeDeclare(channel)(exchangeConfig)
       }
 
     case req @ DeclareExchangePassive(name) =>

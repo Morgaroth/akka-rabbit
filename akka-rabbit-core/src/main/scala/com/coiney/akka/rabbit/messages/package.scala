@@ -20,7 +20,7 @@ package object messages {
   case class BindQueue(name: String, exchange: String, routingKey: String, arguments: Map[String, AnyRef] = Map.empty) extends Request
   case class UnbindQueue(name: String, exchange: String, routingKey: String) extends Request
 
-  case class DeclareExchange(name: String, exchangeType: String, durable: Boolean = false, autoDelete: Boolean = false, arguments: Map[String, AnyRef] = Map.empty) extends Request
+  case class DeclareExchange(exchangeConfig: ExchangeConfig) extends Request
   case class DeclareExchangePassive(name: String) extends Request
   case class DeleteExchange(name: String) extends Request
   case class BindExchange(destination: String, source: String, routingKey: String, arguments: Map[String, AnyRef] = Map.empty) extends Request
