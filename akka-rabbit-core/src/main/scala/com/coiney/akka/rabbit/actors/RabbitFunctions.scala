@@ -37,6 +37,7 @@ trait RabbitFunctions {
   def basicAck(channel: Channel)(deliveryTag: Long): Unit
   def basicReject(channel: Channel)(deliveryTag: Long, requeue: Boolean): Unit
   def basicGet(channel: Channel)(queue: String, autoAck: Boolean): Unit
+  def basicQoS(channel: Channel)(prefetchSize: Int, prefetchCount: Int): Unit
   def confirmSelect(channel: Channel): Unit
   def waitForConfirms(channel: Channel)(timeout: Option[FiniteDuration]): Boolean
   def waitForConfirmsOrDie(channel: Channel)(timeout: Option[FiniteDuration]): Unit
@@ -163,6 +164,10 @@ trait AMQPRabbitFunctions extends RabbitFunctions {
 
   def basicGet(channel: Channel)(queue: String, autoAck: Boolean): Unit = {
     channel.basicGet(queue, autoAck)
+  }
+
+  def basicQoS(channel: Channel)(prefetchSize: Int, prefetchCount: Int): Unit = {
+    channel.basicQos(prefetchSize, prefetchCount, false)
   }
 
   def confirmSelect(channel: Channel): Unit = {
