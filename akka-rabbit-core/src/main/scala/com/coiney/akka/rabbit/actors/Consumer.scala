@@ -4,7 +4,7 @@ import akka.actor.{Actor, ActorRef, Props}
 import com.rabbitmq.client.{DefaultConsumer, Channel}
 
 import com.coiney.akka.rabbit.messages.Request
-import com.coiney.akka.rabbit.{ExchangeConfig, QueueConfig, ChannelConfig}
+import com.coiney.akka.rabbit.ChannelConfig
 
 
 object Consumer {

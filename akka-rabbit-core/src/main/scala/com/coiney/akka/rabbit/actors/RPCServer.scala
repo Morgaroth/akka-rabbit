@@ -7,7 +7,7 @@ import com.rabbitmq.client.{Channel, DefaultConsumer}
 
 import scala.concurrent.duration._
 
-import com.coiney.akka.rabbit.{ExchangeConfig, QueueConfig, ChannelConfig}
+import com.coiney.akka.rabbit.ChannelConfig
 import com.coiney.akka.rabbit.RPC._
 
 
