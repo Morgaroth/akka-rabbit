@@ -12,7 +12,7 @@ import scala.util.{Failure, Success, Try}
 object ConnectionKeeper {
   case object Connect
   case object GetChannel
-  private[rabbit] case class CreateChild(props: Props, name: Option[String])
+  case class CreateChild(props: Props, name: Option[String])
 
   sealed trait State
   case object Connected extends State

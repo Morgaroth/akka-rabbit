@@ -6,15 +6,15 @@ import com.typesafe.config.Config
 object ConnectionConfig {
   def apply(config: Config): ConnectionConfig =
     new ConnectionConfig (
-      host                = config.getString("rabbit.host"),
-      port                = config.getInt("rabbit.port"),
-      username            = config.getString("rabbit.username"),
-      password            = config.getString("rabbit.password"),
-      virtualHost         = config.getString("rabbit.virtual-host"),
-      connectionTimeout   = config.getInt("rabbit.connection-timeout"),
-      requestedChannelMax = config.getInt("rabbit.requested-channel-max"),
-      requestedFrameMax   = config.getInt("rabbit.requested-frame-max"),
-      requestedHeartbeat  = config.getInt("rabbit.requested-heartbeat")
+      host                = config.getString("host"),
+      port                = config.getInt("port"),
+      username            = config.getString("username"),
+      password            = config.getString("password"),
+      virtualHost         = config.getString("virtual-host"),
+      connectionTimeout   = config.getInt("connection-timeout"),
+      requestedChannelMax = config.getInt("requested-channel-max"),
+      requestedFrameMax   = config.getInt("requested-frame-max"),
+      requestedHeartbeat  = config.getInt("requested-heartbeat")
     )
 }
 

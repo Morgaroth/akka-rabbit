@@ -37,7 +37,7 @@ package object messages {
   case class WaitForConfirms(timeout: Option[FiniteDuration]) extends Request
   case class WaitForConfirmsOrDie(timeout: Option[FiniteDuration]) extends Request
 
-  case class AddConsumer(listener: ActorRef) extends Request
+  case class AddConsumer(listener: ActorRef, consumer: ActorRef) extends Request
 
   case class ConsumeQueue(queueConfig: QueueConfig) extends Request
   case class CancelConsume(consumerTag: String) extends Request

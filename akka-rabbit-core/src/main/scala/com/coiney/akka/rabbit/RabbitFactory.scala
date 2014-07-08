@@ -17,20 +17,12 @@ import scala.concurrent.duration._
 
 trait RabbitFactory {
   import com.coiney.akka.rabbit.messages._
+  import RabbitFactory._
 
   def connectionConfig: ConnectionConfig
   def actorRefFactory: ActorRefFactory
 
-  val connectionFactory = new ConnectionFactory()
-  connectionFactory.setHost(connectionConfig.host)
-  connectionFactory.setPort(connectionConfig.port)
-  connectionFactory.setUsername(connectionConfig.username)
-  connectionFactory.setPassword(connectionConfig.password)
-  connectionFactory.setVirtualHost(connectionConfig.virtualHost)
-  connectionFactory.setConnectionTimeout(connectionConfig.connectionTimeout)
-  connectionFactory.setRequestedChannelMax(connectionConfig.requestedChannelMax)
-  connectionFactory.setRequestedFrameMax(connectionConfig.requestedFrameMax)
-  connectionFactory.setRequestedHeartbeat(connectionConfig.requestedHeartbeat)
+  val connectionFactory = createConnectionFactory(connectionConfig)
 
   def setSharedExecutor(executor: ExecutorService): Unit =
     connectionFactory.setSharedExecutor(executor)
@@ -87,7 +79,21 @@ trait RabbitFactory {
 
 object RabbitFactory {
   def apply(cfg: Config)(implicit _actorRefFactory: ActorRefFactory): RabbitFactory = new RabbitFactory {
-    lazy val connectionConfig: ConnectionConfig = ConnectionConfig(cfg)
+    lazy val connectionConfig: ConnectionConfig = ConnectionConfig(cfg.getConfig("rabbit"))
     val actorRefFactory = _actorRefFactory
+  }
+
+  def createConnectionFactory(connectionConfig: ConnectionConfig): ConnectionFactory = {
+    val connectionFactory = new ConnectionFactory()
+    connectionFactory.setHost(connectionConfig.host)
+    connectionFactory.setPort(connectionConfig.port)
+    connectionFactory.setUsername(connectionConfig.username)
+    connectionFactory.setPassword(connectionConfig.password)
+    connectionFactory.setVirtualHost(connectionConfig.virtualHost)
+    connectionFactory.setConnectionTimeout(connectionConfig.connectionTimeout)
+    connectionFactory.setRequestedChannelMax(connectionConfig.requestedChannelMax)
+    connectionFactory.setRequestedFrameMax(connectionConfig.requestedFrameMax)
+    connectionFactory.setRequestedHeartbeat(connectionConfig.requestedHeartbeat)
+    connectionFactory
   }
 }

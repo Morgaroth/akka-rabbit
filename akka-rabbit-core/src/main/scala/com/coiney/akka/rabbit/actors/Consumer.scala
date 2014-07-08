@@ -49,7 +49,7 @@ class Consumer(listener: ActorRef,
 
   override def channelCallback(channel: Channel): Unit = {
     super.channelCallback(channel)
-    consumer = Some(addConsumer(channel)(listener))
+    consumer = Some(addConsumer(channel)(listener, self))
   }
 
 }

@@ -21,7 +21,7 @@ object Versions {
 
 object BuildSettings {
   val buildName                 = "akka-rabbit"
-  val buildVersion              = "0.2.0"
+  val buildVersion              = "0.2.1"
   val buildScalaVersion         = Versions.scala
   val buildJvmVersion           = Versions.jvm
 

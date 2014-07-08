@@ -137,9 +137,9 @@ private[rabbit] class ChannelHandler(channel: Channel) extends Actor
         waitForConfirmsOrDie(channel)(timeout)
       }
 
-    case req @ AddConsumer(listener) =>
+    case req @ AddConsumer(listener, consumer) =>
       sender ! handleRequest(req){ () =>
-        addConsumer(channel)(listener)
+        addConsumer(channel)(listener, consumer)
       }
 
   }

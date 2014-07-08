@@ -45,7 +45,7 @@ trait RabbitFunctions {
   def confirmSelect(channel: Channel): Unit
   def waitForConfirms(channel: Channel)(timeout: Option[FiniteDuration]): Boolean
   def waitForConfirmsOrDie(channel: Channel)(timeout: Option[FiniteDuration]): Unit
-  def addConsumer(channel: Channel)(listener: ActorRef): DefaultConsumer
+  def addConsumer(channel: Channel)(listener: ActorRef, consumer: ActorRef): DefaultConsumer
   def closeChannel(channel: Channel): Unit
 
   def configureChannel(channel: Channel)(channelConfig: ChannelConfig): Unit
@@ -200,13 +200,13 @@ trait AMQPRabbitFunctions extends RabbitFunctions {
     }
   }
 
-  def addConsumer(channel: Channel)(listener: ActorRef): DefaultConsumer = {
+  def addConsumer(channel: Channel)(listener: ActorRef, consumer: ActorRef): DefaultConsumer = {
     new DefaultConsumer(channel){
       override def handleDelivery(consumerTag: String, envelope: Envelope, properties: AMQP.BasicProperties, body: Array[Byte]): Unit =
-        listener ! HandleDelivery(consumerTag, envelope, properties, body)
+        listener.tell(HandleDelivery(consumerTag, envelope, properties, body), consumer)
 
       override def handleCancel(consumerTag: String): Unit =
-        listener ! HandleCancel(consumerTag)
+        listener.tell(HandleCancel(consumerTag), consumer)
     }
   }
 
