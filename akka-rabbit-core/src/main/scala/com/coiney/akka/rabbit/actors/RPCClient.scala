@@ -63,7 +63,7 @@ class RPCClient(channelConfig: Option[ChannelConfig] = None,
 
   private def createAndConsumeReplyQueue(channel: Channel): Unit = {
     queue = Some(queueDeclare(channel)(QueueConfig("", durable = false, exclusive = true, autoDelete = true, Map.empty[String, AnyRef])).getQueue)
-    consumer = Some(addConsumer(channel)(self))
+    consumer = Some(addConsumer(channel)(self, self))
     basicConsume(channel)(queue.get, autoAck = false, consumer.get)
   }
 

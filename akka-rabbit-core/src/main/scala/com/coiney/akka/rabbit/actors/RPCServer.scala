@@ -40,7 +40,7 @@ class RPCServer(processor: Processor,
 
   override def channelCallback(channel: Channel): Unit = {
     super.channelCallback(channel)
-    consumer = Some(addConsumer(channel)(self))
+    consumer = Some(addConsumer(channel)(self, self))
   }
 
   override val supervisorStrategy =
