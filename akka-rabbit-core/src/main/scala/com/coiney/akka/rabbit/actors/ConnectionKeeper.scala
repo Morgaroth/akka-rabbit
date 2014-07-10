@@ -78,7 +78,7 @@ class ConnectionKeeper(connectionFactory: ConnectionFactory) extends Actor
     case GetChannel =>
       Try(createChannel(conn)) match {
         case Success(channel) =>
-          log.info("channel created")
+          log.debug("channel created")
           sender ! ChannelKeeper.HandleChannel(channel)
         case Failure(cause) =>
           log.error(cause, "Channel creation failed.")
