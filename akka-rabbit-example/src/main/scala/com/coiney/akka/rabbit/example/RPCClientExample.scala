@@ -3,9 +3,8 @@ package com.coiney.akka.rabbit.example
 import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.util.Timeout
-import com.typesafe.config.ConfigFactory
 
-import com.coiney.akka.rabbit.RabbitFactory
+import com.coiney.akka.rabbit.RabbitSystem
 import com.coiney.akka.rabbit.RPC
 import com.coiney.akka.rabbit.messages._
 
@@ -21,17 +20,13 @@ object RPCClientExample extends App {
   // Add system shutdown hook
   sys.addShutdownHook(system.shutdown())
 
-  // load the configuration and initialize the RabbitFactory
-  val cfg = ConfigFactory.load()
-  val rabbit = RabbitFactory(cfg)
+  val rabbitSystem = RabbitSystem()
 
   // create the connection keeper and wait for it to be connected
-  val connectionKeeper = rabbit.createConnection(Some("connection"))
-  rabbit.waitForConnection(connectionKeeper)
+  val connectionKeeper = rabbitSystem waitFor rabbitSystem.createConnection("connection")
 
   // create the RPC Client and wait for it to be connected
-  val rpcClient = rabbit.createRPCClient(connectionKeeper, name = Some("rpc-client"))
-  rabbit.waitForConnection(rpcClient)
+  val rpcClient = rabbitSystem waitFor rabbitSystem.createRPCClient(connectionKeeper, "rpc-client")
 
   while(true) {
     val msg = scala.util.Random.nextString(10)

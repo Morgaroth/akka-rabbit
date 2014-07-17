@@ -34,10 +34,12 @@ object Globals {
     <id>pjan</id><name>pjan vandaele</name><url>http://pjan.io</url>;
 
   val pomLicense =
-    <license>
-      <name>BSD</name>
-      <url>http://opensource.org/licenses/BSD-3-Clause</url>
-      <distribution>repo</distribution>
-    </license>;
+    <licenses>
+      <license>
+        <name>The BSD 3-Clause License</name>
+        <url>http://opensource.org/licenses/BSD-3-Clause</url>
+        <distribution>repo</distribution>
+      </license>
+    </licenses>;
 
 }

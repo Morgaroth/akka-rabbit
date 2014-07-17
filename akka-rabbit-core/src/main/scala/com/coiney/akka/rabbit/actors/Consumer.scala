@@ -29,7 +29,7 @@ class Consumer(listener: ActorRef,
 
   def consumerConnected(channel: Channel, handler: ActorRef): Actor.Receive = {
     case req @ ConsumeQueue(queueConfig) => consumer match {
-      case None    => log.debug("Channel is not a consumer.")
+      case None    => log.debug("No consumer registered")
       case Some(c) =>
         sender ! handleRequest(req){ () =>
           val consumerTag = queueConsume(channel)(queueConfig, autoAck, c)
@@ -39,7 +39,7 @@ class Consumer(listener: ActorRef,
     }
 
     case req @ CancelConsume(consumerTag) => consumer match {
-      case None    => log.debug("Channel is not a consumer.")
+      case None    => log.debug("Channel is not a consumer")
       case Some(c) =>
         sender ! handleRequest(req){ () =>
           basicCancel(channel)(consumerTag)

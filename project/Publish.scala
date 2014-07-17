@@ -24,7 +24,6 @@ object Publish {
   val projectRepoCredentials = Globals.baseCredentials ++ Seq()
 
   def projectPomExtra = {
-    <url>{ Globals.sourceUrl }</url>
       <scm>
         <url>{ Globals.scmUrl }</url>
         <connection>{ Globals.scmConnection }</connection>

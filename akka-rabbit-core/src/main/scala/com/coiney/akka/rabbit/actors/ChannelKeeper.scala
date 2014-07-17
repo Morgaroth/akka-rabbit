@@ -46,7 +46,7 @@ private[rabbit] class ChannelKeeper(channelConfig: Option[ChannelConfig] = None,
 
   def disconnected: Actor.Receive =  {
     case HandleChannel(channel) =>
-      log.debug(s"received channel $channel")
+      log.debug(s"Received channel [$channel]")
       val handler = context.actorOf(ChannelHandler.props(channel), "handler")
       handler ! AddShutdownListener(self)
       handler ! AddReturnListener(self)
@@ -66,7 +66,7 @@ private[rabbit] class ChannelKeeper(channelConfig: Option[ChannelConfig] = None,
       handler forward req
 
     case HandleShutdown(cause) if !cause.isInitiatedByApplication =>
-      log.error(cause, "The AMQP channel was lost")
+      log.error(cause, s"Lost the AMQP channel [$channel]")
       context.stop(handler)
       sendEvent(Disconnected)
       context.parent ! ConnectionKeeper.GetChannel
