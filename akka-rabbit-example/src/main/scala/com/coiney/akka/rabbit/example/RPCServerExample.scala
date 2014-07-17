@@ -1,7 +1,6 @@
 package com.coiney.akka.rabbit.example
 
 import akka.actor.ActorSystem
-import com.typesafe.config.ConfigFactory
 
 import com.coiney.akka.rabbit.RPC.Result
 import com.coiney.akka.rabbit._
@@ -29,16 +28,12 @@ object RPCServerExample extends App {
   // Add system shutdown hook
   sys.addShutdownHook(system.shutdown())
 
-  // load the configuration and initialize the RabbitFactory
-  val cfg = ConfigFactory.load()
-  val rabbit = RabbitFactory(cfg)
+  val rabbitSystem = RabbitSystem()
 
   // create the connection keeper and wait for it to be connected
-  val connectionKeeper = rabbit.createConnection(Some("connection"))
-  rabbit.waitForConnection(connectionKeeper)
+  val connectionKeeper = rabbitSystem waitFor rabbitSystem.createConnection("connection")
 
   // create the RPC Server and wait for it to be connected
-  val rpcServer = rabbit.createRPCServer(connectionKeeper, new ExclamationProcessor(), queueConfig = Some(QueueConfig("my_queue", durable = false, exclusive = false, autoDelete = true)))
-  rabbit.waitForConnection(rpcServer)
+  val rpcServer = rabbitSystem waitFor rabbitSystem.createRPCServer(connectionKeeper, new ExclamationProcessor(), QueueConfig("my_queue", durable = false, exclusive = false, autoDelete = true), "rpc-server")
 
 }
