@@ -3,25 +3,25 @@ package com.coiney.akka.rabbit.actors
 import akka.actor.{ActorRef, Actor, Props}
 import com.rabbitmq.client.{AMQP, DefaultConsumer, Channel}
 
-import com.coiney.akka.rabbit.messages.{Request, HandleDelivery}
-import com.coiney.akka.rabbit.{QueueConfig, ChannelConfig, RPC}
+import com.coiney.akka.rabbit.protocol.{RabbitRequest, HandleDelivery}
+import com.coiney.akka.rabbit.{QueueConfig, ChannelConfig}
 
 
 object RPCClient {
   case class PendingRequest(sender: ActorRef, expectedNumberOfResponses: Int, handleDeliveries: List[HandleDelivery])
 
-  def apply(channelConfig: Option[ChannelConfig] = None, provision: Seq[Request] = Seq.empty[Request]): RPCClient =
+  def apply(channelConfig: Option[ChannelConfig] = None, provision: Seq[RabbitRequest] = Seq.empty[RabbitRequest]): RPCClient =
     new RPCClient(channelConfig, provision) with AMQPRabbitFunctions
 
-  def props(channelConfig: Option[ChannelConfig] = None, provision: Seq[Request] = Seq.empty[Request]): Props =
+  def props(channelConfig: Option[ChannelConfig] = None, provision: Seq[RabbitRequest] = Seq.empty[RabbitRequest]): Props =
     Props(RPCClient(channelConfig, provision))
 }
 
 class RPCClient(channelConfig: Option[ChannelConfig] = None,
-                provision: Seq[Request] = Seq.empty[Request]) extends ChannelKeeper(channelConfig, provision) {
+                provision: Seq[RabbitRequest] = Seq.empty[RabbitRequest]) extends ChannelKeeper(channelConfig, provision) {
   this: RabbitFunctions =>
   import RPCClient._
-  import com.coiney.akka.rabbit.messages._
+  import com.coiney.akka.rabbit.protocol._
 
   var queue: Option[String] = None
   var consumer: Option[DefaultConsumer] = None
@@ -30,7 +30,7 @@ class RPCClient(channelConfig: Option[ChannelConfig] = None,
   override def connected(channel: Channel, handler: ActorRef): Actor.Receive = rpcClientConnected(channel) orElse super.connected(channel, handler)
 
   def rpcClientConnected(channel: Channel): Actor.Receive = {
-    case RPC.Request(publishes, numberOfResponses) =>
+    case RabbitRPCRequest(publishes, numberOfResponses) =>
       val correlationId = java.util.UUID.randomUUID().toString
       publishes.foreach{ p =>
         val props = p.properties.getOrElse(new AMQP.BasicProperties()).builder().correlationId(correlationId).replyTo(queue.get).build()
@@ -50,7 +50,7 @@ class RPCClient(channelConfig: Option[ChannelConfig] = None,
           pendingRequests = pendingRequests.filterNot(_._1 == correlationId) + (correlationId -> pendingRequest.copy(handleDeliveries = hd :: pendingRequest.handleDeliveries))
           val updatedPendingRequest = pendingRequests.get(correlationId).get
           if (updatedPendingRequest.handleDeliveries.size == updatedPendingRequest.expectedNumberOfResponses) {
-            updatedPendingRequest.sender ! RPC.Response(updatedPendingRequest.handleDeliveries)
+            updatedPendingRequest.sender ! RabbitRPCResponse(updatedPendingRequest.handleDeliveries)
             pendingRequests = pendingRequests.filterNot(_._1 == correlationId)
           }
       }

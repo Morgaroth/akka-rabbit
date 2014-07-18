@@ -8,7 +8,7 @@ import com.typesafe.config.{ConfigFactory, Config}
 
 import com.coiney.akka.pattern.Observable
 import com.coiney.akka.rabbit.actors._
-import com.coiney.akka.rabbit.messages.{ConsumeQueue, Request}
+import com.coiney.akka.rabbit.protocol.{RabbitRPCProcessor, ConsumeQueue, RabbitRequest}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -91,7 +91,7 @@ class RabbitSystem(rabbitConfig: Config, classLoader: ClassLoader)(implicit _act
     createProducer(connectionKeeper, Some(channelConfig))
   def createProducer(connectionKeeper: ActorRef, channelConfig: ChannelConfig, name: String): ActorRef =
     createProducer(connectionKeeper, Some(channelConfig), name = Some(name))
-  def createProducer(connectionKeeper: ActorRef, channelConfig: Option[ChannelConfig] = None, provision: Seq[Request] = Seq.empty[Request], name: Option[String] = None, timeout: FiniteDuration = 5000.millis): ActorRef = {
+  def createProducer(connectionKeeper: ActorRef, channelConfig: Option[ChannelConfig] = None, provision: Seq[RabbitRequest] = Seq.empty[RabbitRequest], name: Option[String] = None, timeout: FiniteDuration = 5000.millis): ActorRef = {
     val futureProducer = (connectionKeeper ? ConnectionKeeper.CreateChild(Producer.props(channelConfig, provision), name))(timeout).mapTo[ActorRef]
     Await.result(futureProducer, timeout)
   }
@@ -125,34 +125,34 @@ class RabbitSystem(rabbitConfig: Config, classLoader: ClassLoader)(implicit _act
     createConsumer(connectionKeeper, listener, Some(channelConfig), Some(consumeQueueConfig), name = Some(name))
   def createConsumer(connectionKeeper: ActorRef, listener: ActorRef, channelConfig: ChannelConfig, consumeQueueConfig: QueueConfig, name: String, autoAck: Boolean): ActorRef =
     createConsumer(connectionKeeper, listener, Some(channelConfig), Some(consumeQueueConfig), name = Some(name), autoAck = autoAck)
-  def createConsumer(connectionKeeper: ActorRef, listener: ActorRef, channelConfig: Option[ChannelConfig] = None, consumeQueueConfig: Option[QueueConfig] = None, provision: Seq[Request] = Seq.empty[Request], name: Option[String] = None, autoAck: Boolean = false, timeout: FiniteDuration = 5000.millis): ActorRef = {
-    val preProvision: Seq[Request] = consumeQueueConfig match {
+  def createConsumer(connectionKeeper: ActorRef, listener: ActorRef, channelConfig: Option[ChannelConfig] = None, consumeQueueConfig: Option[QueueConfig] = None, provision: Seq[RabbitRequest] = Seq.empty[RabbitRequest], name: Option[String] = None, autoAck: Boolean = false, timeout: FiniteDuration = 5000.millis): ActorRef = {
+    val preProvision: Seq[RabbitRequest] = consumeQueueConfig match {
       case Some(cfg) => Seq(ConsumeQueue(cfg))
-      case None      => Seq.empty[Request]
+      case None      => Seq.empty[RabbitRequest]
     }
     val futureConsumer = (connectionKeeper ? ConnectionKeeper.CreateChild(Consumer.props(listener, autoAck, channelConfig, preProvision ++ provision), name))(timeout).mapTo[ActorRef]
     Await.result(futureConsumer, timeout)
   }
 
   // RPCServer constructors
-  def createRPCServer(connectionKeeper: ActorRef, processor: RPC.Processor, name: String): ActorRef =
+  def createRPCServer(connectionKeeper: ActorRef, processor: RabbitRPCProcessor, name: String): ActorRef =
     createRPCServer(connectionKeeper, processor, name = Some(name))
-  def createRPCServer(connectionKeeper: ActorRef, processor: RPC.Processor, consumeQueueConfig: QueueConfig): ActorRef =
+  def createRPCServer(connectionKeeper: ActorRef, processor: RabbitRPCProcessor, consumeQueueConfig: QueueConfig): ActorRef =
     createRPCServer(connectionKeeper, processor, consumeQueueConfig = Some(consumeQueueConfig))
-  def createRPCServer(connectionKeeper: ActorRef, processor: RPC.Processor, consumeQueueConfig: QueueConfig, name: String): ActorRef =
+  def createRPCServer(connectionKeeper: ActorRef, processor: RabbitRPCProcessor, consumeQueueConfig: QueueConfig, name: String): ActorRef =
     createRPCServer(connectionKeeper, processor, consumeQueueConfig = Some(consumeQueueConfig), name = Some(name))
-  def createRPCServer(connectionKeeper: ActorRef, processor: RPC.Processor, channelConfig: ChannelConfig): ActorRef =
+  def createRPCServer(connectionKeeper: ActorRef, processor: RabbitRPCProcessor, channelConfig: ChannelConfig): ActorRef =
     createRPCServer(connectionKeeper, processor, Some(channelConfig))
-  def createRPCServer(connectionKeeper: ActorRef, processor: RPC.Processor, channelConfig: ChannelConfig, name: String): ActorRef =
+  def createRPCServer(connectionKeeper: ActorRef, processor: RabbitRPCProcessor, channelConfig: ChannelConfig, name: String): ActorRef =
     createRPCServer(connectionKeeper, processor, Some(channelConfig), name = Some(name))
-  def createRPCServer(connectionKeeper: ActorRef, processor: RPC.Processor, channelConfig: ChannelConfig, consumeQueueConfig: QueueConfig): ActorRef =
+  def createRPCServer(connectionKeeper: ActorRef, processor: RabbitRPCProcessor, channelConfig: ChannelConfig, consumeQueueConfig: QueueConfig): ActorRef =
     createRPCServer(connectionKeeper, processor, Some(channelConfig), Some(consumeQueueConfig))
-  def createRPCServer(connectionKeeper: ActorRef, processor: RPC.Processor, channelConfig: ChannelConfig, consumeQueueConfig: QueueConfig, name: String): ActorRef =
+  def createRPCServer(connectionKeeper: ActorRef, processor: RabbitRPCProcessor, channelConfig: ChannelConfig, consumeQueueConfig: QueueConfig, name: String): ActorRef =
     createRPCServer(connectionKeeper, processor, Some(channelConfig), Some(consumeQueueConfig), name = Some(name))
-  def createRPCServer(connectionKeeper: ActorRef, processor: RPC.Processor, channelConfig: Option[ChannelConfig] = None, consumeQueueConfig: Option[QueueConfig] = None, provision: Seq[Request] = Seq.empty[Request], name: Option[String] = None, timeout: FiniteDuration = 5000.millis): ActorRef = {
-    val preProvision: Seq[Request] = consumeQueueConfig match {
+  def createRPCServer(connectionKeeper: ActorRef, processor: RabbitRPCProcessor, channelConfig: Option[ChannelConfig] = None, consumeQueueConfig: Option[QueueConfig] = None, provision: Seq[RabbitRequest] = Seq.empty[RabbitRequest], name: Option[String] = None, timeout: FiniteDuration = 5000.millis): ActorRef = {
+    val preProvision: Seq[RabbitRequest] = consumeQueueConfig match {
       case Some(cfg) => Seq(ConsumeQueue(cfg))
-      case None      => Seq.empty[Request]
+      case None      => Seq.empty[RabbitRequest]
     }
     val futureRPCServer = (connectionKeeper ? ConnectionKeeper.CreateChild(RPCServer.props(processor, channelConfig, preProvision ++ provision), name))(timeout).mapTo[ActorRef]
     Await.result(futureRPCServer, timeout)
@@ -165,7 +165,7 @@ class RabbitSystem(rabbitConfig: Config, classLoader: ClassLoader)(implicit _act
     createRPCClient(connectionKeeper, Some(channelConfig))
   def createRPCClient(connectionKeeper: ActorRef, channelConfig: ChannelConfig, name: String): ActorRef =
     createRPCClient(connectionKeeper, Some(channelConfig), name = Some(name))
-  def createRPCClient(connectionKeeper: ActorRef, channelConfig: Option[ChannelConfig] = None, provision: Seq[Request] = Seq.empty[Request], name: Option[String] = None, timeout: FiniteDuration = 5000.millis): ActorRef = {
+  def createRPCClient(connectionKeeper: ActorRef, channelConfig: Option[ChannelConfig] = None, provision: Seq[RabbitRequest] = Seq.empty[RabbitRequest], name: Option[String] = None, timeout: FiniteDuration = 5000.millis): ActorRef = {
     val futureRPCClient = (connectionKeeper ? ConnectionKeeper.CreateChild(RPCClient.props(channelConfig, provision), name))(timeout).mapTo[ActorRef]
     Await.result(futureRPCClient, timeout)
   }

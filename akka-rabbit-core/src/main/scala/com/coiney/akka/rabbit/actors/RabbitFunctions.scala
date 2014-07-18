@@ -11,7 +11,7 @@ import scala.concurrent.duration.FiniteDuration
 
 
 trait RabbitFunctions {
-  import com.coiney.akka.rabbit.messages._
+  import com.coiney.akka.rabbit.protocol._
 
   // connection methods
   def addShutdownListener(connection: Connection)(listener: ActorRef): Unit
@@ -53,7 +53,7 @@ trait RabbitFunctions {
 
 
 trait AMQPRabbitFunctions extends RabbitFunctions {
-  import com.coiney.akka.rabbit.messages._
+  import com.coiney.akka.rabbit.protocol._
 
   def addShutdownListener(connection: Connection)(listener: ActorRef): Unit = {
     connection.addShutdownListener(new ShutdownListener {

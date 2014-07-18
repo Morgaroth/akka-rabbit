@@ -5,7 +5,7 @@ import com.rabbitmq.client.Channel
 
 import com.coiney.akka.pattern.WatchingObservable
 import com.coiney.akka.rabbit.ChannelConfig
-import com.coiney.akka.rabbit.messages.Request
+import com.coiney.akka.rabbit.protocol.RabbitRequest
 
 
 object ChannelKeeper {
@@ -15,21 +15,21 @@ object ChannelKeeper {
   case object Connected extends State
   case object Disconnected extends State
 
-  def apply(channelConfig: Option[ChannelConfig] = None, provision: Seq[Request] = Seq.empty[Request]): ChannelKeeper =
+  def apply(channelConfig: Option[ChannelConfig] = None, provision: Seq[RabbitRequest] = Seq.empty[RabbitRequest]): ChannelKeeper =
     new ChannelKeeper(channelConfig, provision) with AMQPRabbitFunctions
 
-  def props(channelConfig: Option[ChannelConfig] = None, provision: Seq[Request] = Seq.empty[Request]): Props =
+  def props(channelConfig: Option[ChannelConfig] = None, provision: Seq[RabbitRequest] = Seq.empty[RabbitRequest]): Props =
     Props(ChannelKeeper(channelConfig, provision))
 }
 
 
 private[rabbit] class ChannelKeeper(channelConfig: Option[ChannelConfig] = None,
-                                    provision: Seq[Request] = Seq.empty[Request]) extends Actor
+                                    provision: Seq[RabbitRequest] = Seq.empty[RabbitRequest]) extends Actor
                                                                                   with WatchingObservable
                                                                                   with ActorLogging {
   this: RabbitFunctions =>
   import com.coiney.akka.rabbit.actors.ChannelKeeper._
-  import com.coiney.akka.rabbit.messages._
+  import com.coiney.akka.rabbit.protocol._
 
   override def preStart(): Unit = {
     context.parent ! ConnectionKeeper.GetChannel
@@ -55,14 +55,14 @@ private[rabbit] class ChannelKeeper(channelConfig: Option[ChannelConfig] = None,
       sendEvent(Connected)
       context.become(observeReceive(Some(Connected), None) orElse connected(channel, handler))
 
-    case req: Request =>
+    case req: RabbitRequest =>
       sender ! DisconnectedError(req)
   }
 
   def connected(channel: Channel, handler: ActorRef): Actor.Receive = {
-    case res: Response => ()
+    case res: RabbitResponse => ()
 
-    case req: Request =>
+    case req: RabbitRequest =>
       handler forward req
 
     case HandleShutdown(cause) if !cause.isInitiatedByApplication =>

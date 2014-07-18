@@ -2,28 +2,28 @@ package com.coiney.akka.rabbit.actors
 
 import akka.actor.SupervisorStrategy.Stop
 import akka.actor.{OneForOneStrategy, Actor, ActorRef, Props}
-import com.coiney.akka.rabbit.messages.Request
+import com.coiney.akka.rabbit.protocol.RabbitRequest
 import com.rabbitmq.client.{Channel, DefaultConsumer}
 
 import scala.concurrent.duration._
 
 import com.coiney.akka.rabbit.ChannelConfig
-import com.coiney.akka.rabbit.RPC._
+import com.coiney.akka.rabbit.protocol._
 
 
 object RPCServer {
-  def apply(processor: Processor, channelConfig: Option[ChannelConfig] = None, provision: Seq[Request] = Seq.empty[Request]): RPCServer =
+  def apply(processor: RabbitRPCProcessor, channelConfig: Option[ChannelConfig] = None, provision: Seq[RabbitRequest] = Seq.empty[RabbitRequest]): RPCServer =
     new RPCServer(processor, channelConfig, provision) with AMQPRabbitFunctions
 
-  def props(processor: Processor, channelConfig: Option[ChannelConfig] = None, provision: Seq[Request] = Seq.empty[Request]): Props =
+  def props(processor: RabbitRPCProcessor, channelConfig: Option[ChannelConfig] = None, provision: Seq[RabbitRequest] = Seq.empty[RabbitRequest]): Props =
     Props(RPCServer(processor, channelConfig, provision))
 }
 
-class RPCServer(processor: Processor,
+class RPCServer(processor: RabbitRPCProcessor,
                 channelConfig: Option[ChannelConfig] = None,
-                provision: Seq[Request] = Seq.empty[Request]) extends ChannelKeeper(channelConfig, provision) {
+                provision: Seq[RabbitRequest] = Seq.empty[RabbitRequest]) extends ChannelKeeper(channelConfig, provision) {
   this: RabbitFunctions =>
-  import com.coiney.akka.rabbit.messages._
+  import com.coiney.akka.rabbit.protocol._
 
   var consumer: Option[DefaultConsumer] = None
 

@@ -32,7 +32,7 @@ class ConnectionKeeper(protected val settings: RabbitSystem.Settings) extends Ac
                                                                       with RabbitConfiguration
                                                                       with ActorLogging {
   this: RabbitConnectionProvider with RabbitFunctions =>
-  import com.coiney.akka.rabbit.messages._
+  import com.coiney.akka.rabbit.protocol._
   import com.coiney.akka.rabbit.actors.ConnectionKeeper._
 
   implicit val ec = context.dispatcher
