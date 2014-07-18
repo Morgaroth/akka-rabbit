@@ -1,7 +1,6 @@
 package com.coiney.akka.rabbit.example
 
 import akka.actor.{Props, ActorSystem}
-import com.typesafe.config.ConfigFactory
 
 import com.coiney.akka.rabbit.{QueueConfig, RabbitSystem}
 

@@ -2,22 +2,21 @@ package com.coiney.akka.rabbit.example
 
 import akka.actor.ActorSystem
 
-import com.coiney.akka.rabbit.RPC.Result
 import com.coiney.akka.rabbit._
-import com.coiney.akka.rabbit.messages.{ConsumeQueue, HandleDelivery}
+import com.coiney.akka.rabbit.protocol._
 
 
-class ExclamationProcessor extends RPC.Processor {
-  override def process(hd: HandleDelivery): Result = {
+class ExclamationProcessor extends RabbitRPCProcessor {
+  override def process(hd: HandleDelivery): RabbitRPCResult = {
     val req = new String(hd.body)
     println(s"Received: $req")
     val res = s"$req!"
     Thread.sleep(scala.util.Random.nextInt(2000))
-    RPC.Result(Some(res.getBytes("UTF-8")))
+    RabbitRPCResult(Some(res.getBytes("UTF-8")))
   }
 
-  override def recover(hd: HandleDelivery, cause: Throwable): Result =
-    RPC.Result(Some(s"Processor error: ${cause.getMessage}".getBytes("UTF-8")))
+  override def recover(hd: HandleDelivery, cause: Throwable): RabbitRPCResult =
+    RabbitRPCResult(Some(s"Processor error: ${cause.getMessage}".getBytes("UTF-8")))
 }
 
 

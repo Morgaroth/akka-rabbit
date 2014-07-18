@@ -2,7 +2,7 @@ package com.coiney.akka.rabbit.example
 
 import akka.actor.Actor
 
-import com.coiney.akka.rabbit.messages.{HandleCancel, Ack, HandleDelivery}
+import com.coiney.akka.rabbit.protocol.{HandleCancel, Ack, HandleDelivery}
 
 
 class ConsumeActor extends Actor {

@@ -5,8 +5,7 @@ import akka.pattern.ask
 import akka.util.Timeout
 
 import com.coiney.akka.rabbit.RabbitSystem
-import com.coiney.akka.rabbit.RPC
-import com.coiney.akka.rabbit.messages._
+import com.coiney.akka.rabbit.protocol._
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
@@ -31,7 +30,7 @@ object RPCClientExample extends App {
   while(true) {
     val msg = scala.util.Random.nextString(10)
     println(s"sending request: $msg")
-    (rpcClient ? RPC.Request(List(Publish("", "my_queue", msg.getBytes("UTF-8"))), 1)).mapTo[RPC.Response].map(response => {
+    (rpcClient ? RabbitRPCRequest(List(Publish("", "my_queue", msg.getBytes("UTF-8"))), 1)).mapTo[RabbitRPCResponse].map(response => {
       // we expect 1 delivery
       val delivery = response.handleDeliveries.head
       println("response : " + new String(delivery.body))

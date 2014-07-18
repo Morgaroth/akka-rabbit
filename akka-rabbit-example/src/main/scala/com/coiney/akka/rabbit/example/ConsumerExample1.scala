@@ -3,7 +3,7 @@ package com.coiney.akka.rabbit.example
 import akka.actor.{Props, ActorSystem}
 
 import com.coiney.akka.rabbit.{QueueConfig, RabbitSystem}
-import com.coiney.akka.rabbit.messages._
+import com.coiney.akka.rabbit.protocol._
 
 
 object ConsumerExample1 extends App {
