@@ -3,11 +3,9 @@ import sbt.Keys._
 
 
 object Projects extends Build {
-  import play.twirl.sbt.SbtTwirl
   import Settings._
   import Unidoc.{settings => unidocSettings}
   import Assembly.{settings => assemblySettings}
-  import Package.{serverSettings => packageServerSettings, rpmSettings => packageRpmSettings}
   import Release.{settings => releaseSettings}
   import Dependencies._
 
@@ -22,21 +20,18 @@ object Projects extends Build {
   lazy val coreModule = module("core", basicSettings)
     .settings(unidocSettings: _*)
     .settings(assemblySettings: _*)
-    .settings(packageServerSettings: _*)
-    .settings(packageRpmSettings: _*)
     .settings(releaseSettings: _*)
     .settings(
       libraryDependencies ++=
-        compile(typesafeConfig, logback, akkaActor, akkaSlf4j, akkaPatterns, rabbitAmqp) ++
+        compile(typesafeConfig, akkaActor, akkaPatterns, rabbitAmqp) ++
         test(scalaTest, akkaTest)
-    ).enablePlugins(SbtTwirl)
+    )
 
   lazy val exampleModule = module("example", basicSettings)
     .settings(noPublishing: _*)
     .settings(
       libraryDependencies ++=
-        compile(typesafeConfig, logback, akkaActor, akkaSlf4j) ++
-        test(scalaTest, akkaTest)
+        compile(typesafeConfig, akkaActor)
     ).dependsOn(
       coreModule % "test->test;compile->compile"
     )
