@@ -9,6 +9,7 @@ object Dependencies {
     val logback         = "1.1.2"
     val typesafeConfig  = "1.2.0"
 
+    val junit           = "4.11"
     val scalaTest       = "2.2.0"
     val scalaMock       = "3.1.RC1"
     val scalaCheck      = "1.11.4"
@@ -22,6 +23,7 @@ object Dependencies {
   val rabbitAmqp      = "com.rabbitmq"        %   "amqp-client"                 % "3.3.3"
   val typesafeConfig  = "com.typesafe"        %   "config"                      % Versions.typesafeConfig
 
+  val junit           = "junit"               %   "junit"                       % Versions.junit
   val scalaTest       = "org.scalatest"       %%  "scalatest"                   % Versions.scalaTest
   val scalaMock       = "org.scalamock"       %%  "scalamock-scalatest-support" % Versions.scalaMock
   val scalaCheck      = "org.scalacheck"      %%  "scalacheck"                  % Versions.scalaCheck
