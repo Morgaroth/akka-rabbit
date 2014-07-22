@@ -4,7 +4,7 @@ object Dependencies {
 
   object Versions {
     val akka            = "2.3.4"
-    val akkaPatterns    = "0.1.0"
+    val akkaPatterns    = "0.1.6"
     val aspectj         = "1.7.4"
     val logback         = "1.1.2"
     val typesafeConfig  = "1.2.0"

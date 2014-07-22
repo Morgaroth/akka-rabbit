@@ -3,9 +3,10 @@ import sbt._
 object Globals {
   val name                  = "akka-rabbit"
   val scalaVersion          = "2.10.4"
+  val crossScalaVersions    = Seq("2.10.4", "2.11.1")
   val jvmVersion            = "1.7"
 
-  val homepage              = Some(url("http://www.pjan.io"))
+  val homepage              = Some(url("http://www.coiney.com"))
   val startYear             = Some(2014)
   val summary               = "An asynchronous scala client for RabbitMQ, based on Akka."
   val description           = "An asynchronous scala client for RabbitMQ, based on Akka."

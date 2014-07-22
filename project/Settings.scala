@@ -6,9 +6,10 @@ import Release.{settings => releaseSettings}
 object Settings {
 
   lazy val basicSettings: Seq[Setting[_]] = Seq(
-    scalaVersion  := Globals.scalaVersion,
-    resolvers    ++= Resolvers.common,
-    javacOptions  := Seq(
+    scalaVersion        := Globals.scalaVersion,
+    crossScalaVersions  := Globals.crossScalaVersions,
+    resolvers          ++= Resolvers.common,
+    javacOptions        := Seq(
       "-source", Globals.jvmVersion,
       "-target", Globals.jvmVersion
     ),
