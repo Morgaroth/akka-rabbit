@@ -19,7 +19,7 @@ private[rabbit] object RPCProcessor {
 private[rabbit] class RPCProcessor(processor: RabbitRPCProcessor, channel: Channel) extends Actor
                                                                            with ActorLogging {
   this: RabbitFunctions =>
-  import com.coiney.akka.rabbit.protocol._
+  import com.coiney.akka.rabbit.protocol.{HandleDelivery, RabbitRPCResult}
 
   override def receive: Actor.Receive = {
     case hd @ HandleDelivery(consumerTag, envelope, properties, body) =>
