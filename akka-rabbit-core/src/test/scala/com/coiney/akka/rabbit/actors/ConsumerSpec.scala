@@ -38,7 +38,7 @@ class ConsumerSpec(_actorSystem: ActorSystem) extends TestKit(_actorSystem)
       val listenerProbe = TestProbe()
       val producer = rabbitSystem waitFor rabbitSystem.createProducer(connectionKeeper)
       val consumer = rabbitSystem waitFor rabbitSystem.createConsumer(connectionKeeper, listenerProbe.ref, autoAck = true)
-      val queue = QueueConfig("test.queue.97360", durable = false, exclusive = false, autoDelete = true)
+      val queue = randomQueue
       val msg = Random.nextString(10)
 
       // produce a message to the queue
@@ -70,10 +70,9 @@ class ConsumerSpec(_actorSystem: ActorSystem) extends TestKit(_actorSystem)
       val listenerProbe = TestProbe()
       val producer = rabbitSystem waitFor rabbitSystem.createProducer(connectionKeeper)
       val consumer = rabbitSystem waitFor rabbitSystem.createConsumer(connectionKeeper, listenerProbe.ref, ChannelConfig(1, 1), autoAck = false)
-      val queue = QueueConfig("test.queue.89538", durable = false, exclusive = false, autoDelete = true)
+      val queue = randomQueue
       val msg1 = Random.nextString(10)
       val msg2 = Random.nextString(10)
-      println(s"$msg1 - $msg2")
 
       // produce messages to the queue
       producer ! DeclareQueue(queue)
@@ -100,15 +99,40 @@ class ConsumerSpec(_actorSystem: ActorSystem) extends TestKit(_actorSystem)
 
       // now ack the message, and receive the second one
       consumer ! Ack(delivery2.envelope.getDeliveryTag)
+      expectMsgClass(classOf[Success])
       val delivery3 = listenerProbe.expectMsgClass(classOf[HandleDelivery])
       new String(delivery3.body) should be (msg2)
       consumer ! Ack(delivery3.envelope.getDeliveryTag)
+      expectMsgClass(classOf[Success])
 
       // Delete the queue we used
       consumer ! CancelConsume(consumerTag)
       expectMsgClass(classOf[Success])
       producer ! DeleteQueue(queue.name)
       expectMsgClass(classOf[Success])
+    }
+
+
+    "receive HandleCancel notifications when the queue is deleted" in {
+      val listenerProbe = TestProbe()
+      val producer = rabbitSystem waitFor rabbitSystem.createProducer(connectionKeeper)
+      val consumer = rabbitSystem waitFor rabbitSystem.createConsumer(connectionKeeper, listenerProbe.ref)
+      val queue = randomQueue
+      val msg = Random.nextString(10)
+
+      // Consume from the queue
+      consumer ! ConsumeQueue(queue)
+      val Success(_, Some(consumerTag: String)) = receiveOne(1.second)
+
+      // Produce to the queue and receive the message
+      producer ! Publish("", queue.name, msg.getBytes("UTF-8"))
+      expectMsgClass(classOf[Success])
+      val delivery = listenerProbe.expectMsgClass(classOf[HandleDelivery])
+      delivery.consumerTag should be (consumerTag)
+
+      producer ! DeleteQueue(queue.name)
+      expectMsgClass(classOf[Success])
+      listenerProbe.expectMsgClass(classOf[HandleCancel])
     }
 
   }
