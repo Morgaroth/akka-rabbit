@@ -21,7 +21,7 @@ For people using SBT, add the following to your dependencies to get you started:
 ### Usage
 
 #### Connecting to RabbitMQ
-The RabbitMQ connection configuration is done through Typesafe Configuration Library[*](https://github.com/typesafehub/config) (see (reference)[https://github.com/Coiney/akka-rabbit/blob/develop/akka-rabbit-core/src/main/resources/reference.conf]). Once that is configured, you can connect RabbitMQ as follows:
+The RabbitMQ connection configuration is done through Typesafe Configuration Library[*](https://github.com/typesafehub/config) (see [reference](https://github.com/Coiney/akka-rabbit/blob/develop/akka-rabbit-core/src/main/resources/reference.conf)). Once that is configured, you can connect RabbitMQ as follows:
 ```
 import akka.actor.ActorSystem
 import com.coiney.akka.rabbit.{QueueConfig, RabbitSystem}
