@@ -66,13 +66,14 @@ class ConsumerSpec(_actorSystem: ActorSystem) extends TestKit(_actorSystem)
     }
 
 
-    "consume and manually ack messages in a queue" in {
+    "consume and manually reject/ack messages in a queue" in {
       val listenerProbe = TestProbe()
       val producer = rabbitSystem waitFor rabbitSystem.createProducer(connectionKeeper)
       val consumer = rabbitSystem waitFor rabbitSystem.createConsumer(connectionKeeper, listenerProbe.ref, ChannelConfig(1, 1), autoAck = false)
-      val queue = QueueConfig("test.queue.82538", durable = false, exclusive = false, autoDelete = true)
+      val queue = QueueConfig("test.queue.89538", durable = false, exclusive = false, autoDelete = true)
       val msg1 = Random.nextString(10)
       val msg2 = Random.nextString(10)
+      println(s"$msg1 - $msg2")
 
       // produce messages to the queue
       producer ! DeclareQueue(queue)
@@ -91,12 +92,17 @@ class ConsumerSpec(_actorSystem: ActorSystem) extends TestKit(_actorSystem)
       // Not receive the second message as long as we haven't acked
       listenerProbe.expectNoMsg(1.second)
 
-      // ack the first message and receive the second
-      consumer ! Ack(delivery1.envelope.getDeliveryTag)
+      // reject & requeue the first message and get it again
+      consumer ! Reject(delivery1.envelope.getDeliveryTag, requeue = true)
       expectMsgClass(classOf[Success])
       val delivery2 = listenerProbe.expectMsgClass(classOf[HandleDelivery])
-      new String(delivery2.body) should be (msg2)
+      new String(delivery2.body) should be (msg1)
+
+      // now ack the message, and receive the second one
       consumer ! Ack(delivery2.envelope.getDeliveryTag)
+      val delivery3 = listenerProbe.expectMsgClass(classOf[HandleDelivery])
+      new String(delivery3.body) should be (msg2)
+      consumer ! Ack(delivery3.envelope.getDeliveryTag)
 
       // Delete the queue we used
       consumer ! CancelConsume(consumerTag)
