@@ -40,10 +40,9 @@ object Main extends App {
   
   system.shutDown()
 }
+```
 
 You can find additional examples under [akka-rabbit-example](https://github.com/Coiney/akka-rabbit/tree/develop/akka-rabbit-example).
-
-```
 
 ### License
 
