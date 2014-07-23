@@ -171,7 +171,7 @@ trait AMQPRabbitFunctions extends RabbitFunctions {
   }
 
   def basicReject(channel: Channel)(deliveryTag: Long, requeue: Boolean): Unit = {
-    channel.basicReject(deliveryTag, false)
+    channel.basicReject(deliveryTag, requeue)
   }
 
   def basicGet(channel: Channel)(queue: String, autoAck: Boolean): Unit = {
