@@ -27,10 +27,15 @@ class ConnectionKeeperSpec(_actorSystem: ActorSystem) extends TestKit(_actorSyst
       val probe = TestProbe()
       val connectionKeeper = TestConnectionKeeperRef()
 
-      // create a child actor
-      probe.send(connectionKeeper, ConnectionKeeper.CreateChild(Props(new EchoActor), None))
+      // the connectionKeeper should have no children to start with
+      connectionKeeper.underlyingActor.context.children should have size (0)
 
+      // create a child actor, and get it back
+      probe.send(connectionKeeper, ConnectionKeeper.CreateChild(Props(new EchoActor), None))
       probe.expectMsgClass(2.seconds, classOf[ActorRef])
+
+      // the connectionkeeper should now have one child
+      connectionKeeper.underlyingActor.context.children should have size (1)
     }
 
 
