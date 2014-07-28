@@ -45,7 +45,7 @@ class ConnectionKeeper(protected val settings: RabbitSystem.Settings) extends Ac
   }
 
   override def postStop(): Unit = {
-    connection.foreach(c => try closeConnection(c))
+    connection.foreach(c => closeConnection(c))
   }
 
   override def unhandled(message: Any): Unit = {
@@ -64,7 +64,7 @@ class ConnectionKeeper(protected val settings: RabbitSystem.Settings) extends Ac
         case Success(newConnection) =>
           log.info(s"Connected to $safeConnectionUri")
           sendEvent(Connected)
-          connection.foreach(c => try closeConnection(c))
+          connection.foreach(c => closeConnection(c))
           connection = Some(newConnection)
           connectionHeartbeat.foreach(c => c.cancel())
           context.become(observeReceive(Some(Connected), None) orElse connected(newConnection))
