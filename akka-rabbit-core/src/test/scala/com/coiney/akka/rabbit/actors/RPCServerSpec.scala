@@ -75,7 +75,28 @@ class RPCServerSpec(_actorSystem: ActorSystem) extends TestKit(_actorSystem)
         new String(body1) should be(s.reverse)
         new String(body2) should be(s.reverse)
       }
+    }
 
+
+    "correctly respond to clients in a request-single response configuration (multiple clients)" in {
+      val rpcQueue = randomQueue
+
+      // create the server
+      rabbitSystem waitFor rabbitSystem.createRPCServer(connectionKeeper, rabbitRPCProcessor, rpcQueue)
+
+      // create the clients
+      val rpcClient1 = rabbitSystem waitFor rabbitSystem.createRPCClient(connectionKeeper)
+      val rpcClient2 = rabbitSystem waitFor rabbitSystem.createRPCClient(connectionKeeper)
+
+      forAll { (s: String, t: String) =>
+        rpcClient1 ! RabbitRPCRequest(List(Publish("", rpcQueue.name, s.getBytes("UTF-8"))), 1)
+        rpcClient2 ! RabbitRPCRequest(List(Publish("", rpcQueue.name, t.getBytes("UTF-8"))), 1)
+
+        val Seq(RabbitRPCResponse(List(HandleDelivery(_, _, _, body1))), RabbitRPCResponse(List(HandleDelivery(_, _, _, body2)))) = receiveN(2)
+        val responses = List(new String(body1), new String(body2))
+        responses should contain (s.reverse)
+        responses should contain (t.reverse)
+      }
     }
 
   }
