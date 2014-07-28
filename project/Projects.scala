@@ -24,7 +24,7 @@ object Projects extends Build {
     .settings(
       libraryDependencies ++=
         compile(typesafeConfig, akkaActor, akkaPatterns, rabbitAmqp) ++
-        test(junit, scalaTest, akkaTest)
+        test(junit, scalaTest, scalaCheck, akkaTest)
     )
 
   lazy val exampleModule = module("example", basicSettings)
