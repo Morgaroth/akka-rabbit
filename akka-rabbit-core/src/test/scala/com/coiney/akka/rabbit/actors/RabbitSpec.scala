@@ -1,6 +1,6 @@
 package com.coiney.akka.rabbit.actors
 
-import akka.actor.Actor
+import akka.actor.{Props, Actor}
 import akka.testkit.{TestActorRef, TestKit}
 import com.coiney.akka.rabbit.RabbitSystem
 import com.typesafe.config.ConfigFactory
@@ -13,7 +13,12 @@ trait RabbitSpec {
     system.shutdown()
   }
 
-  class EchoActor extends Actor {
+  object EchoProbe {
+    def apply(): EchoProbe = new EchoProbe
+    def props(): Props = Props(EchoProbe())
+  }
+
+  class EchoProbe extends Actor {
     def receive: Actor.Receive = {
       case msg => sender ! msg
     }

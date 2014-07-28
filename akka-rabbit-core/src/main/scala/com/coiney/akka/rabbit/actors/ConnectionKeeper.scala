@@ -38,8 +38,11 @@ class ConnectionKeeper(protected val settings: RabbitSystem.Settings) extends Ac
   implicit val ec = context.dispatcher
 
   var connection: Option[Connection] = None
+  var connectionHeartbeat: Option[Cancellable] = None
 
-  context.system.scheduler.schedule(100.millis, 10000.millis, self, Connect)
+  override def preStart(): Unit = {
+    scheduleConnect()
+  }
 
   override def postStop(): Unit = {
     connection.foreach(c => try closeConnection(c))
@@ -63,6 +66,7 @@ class ConnectionKeeper(protected val settings: RabbitSystem.Settings) extends Ac
           sendEvent(Connected)
           connection.foreach(c => try closeConnection(c))
           connection = Some(newConnection)
+          connectionHeartbeat.foreach(c => c.cancel())
           context.become(observeReceive(Some(Connected), None) orElse connected(newConnection))
         case Failure(cause) =>
           log.error(cause, "Establishing the AMQP connection failed.")
@@ -84,7 +88,7 @@ class ConnectionKeeper(protected val settings: RabbitSystem.Settings) extends Ac
         case Failure(cause) =>
           log.error(cause, "Channel creation failed")
           connection = None
-          self ! Connect
+          scheduleConnect()
           context.become(observeReceive(None, None) orElse disconnected)
       }
 
@@ -96,7 +100,7 @@ class ConnectionKeeper(protected val settings: RabbitSystem.Settings) extends Ac
       log.error(cause, s"The AMQP connection to $safeConnectionUri was lost")
       connection = None
       sendEvent(Disconnected)
-      self ! Connect
+      scheduleConnect()
       context.become(observeReceive(None, None) orElse disconnected)
   }
 
@@ -112,4 +116,9 @@ class ConnectionKeeper(protected val settings: RabbitSystem.Settings) extends Ac
       case Some(n) => context.actorOf(props, n)
     }
   }
+
+  private def scheduleConnect(): Unit = {
+    connectionHeartbeat = Some(context.system.scheduler.schedule(100.millis, 10000.millis, self, Connect))
+  }
+
 }
