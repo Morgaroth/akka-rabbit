@@ -3,13 +3,15 @@ package com.coiney.akka.rabbit.actors
 import akka.actor.ActorSystem
 import akka.testkit.{TestProbe, ImplicitSender, TestKit}
 import com.coiney.akka.rabbit.protocol._
-import org.scalacheck.Gen.Choose
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{BeforeAndAfterEach, BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.duration._
 
 
+@RunWith(classOf[JUnitRunner])
 class RPCSystemSpec(_actorSystem: ActorSystem) extends TestKit(_actorSystem)
                                                with ImplicitSender
                                                with WordSpecLike

@@ -3,9 +3,10 @@ services:
   - rabbitmq
 scala:
   - 2.10.4
-  - 2.11.1
+  - 2.11.2
 jdk:
   - oraclejdk7
+  - oraclejdk8
   - openjdk7
 branches:
   only:

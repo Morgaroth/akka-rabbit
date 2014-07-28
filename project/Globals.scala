@@ -3,7 +3,7 @@ import sbt._
 object Globals {
   val name                  = "akka-rabbit"
   val scalaVersion          = "2.10.4"
-  val crossScalaVersions    = Seq("2.10.4", "2.11.1")
+  val crossScalaVersions    = Seq("2.10.4", "2.11.2")
   val jvmVersion            = "1.7"
 
   val homepage              = Some(url("http://www.coiney.com"))
