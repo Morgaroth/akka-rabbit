@@ -3,15 +3,15 @@ package com.coiney.akka.rabbit.actors
 import akka.actor.{Actor, ActorRef, Props}
 import com.rabbitmq.client.{DefaultConsumer, Channel}
 
-import com.coiney.akka.rabbit.messages.Request
+import com.coiney.akka.rabbit.protocol.RabbitRequest
 import com.coiney.akka.rabbit.ChannelConfig
 
 
 object Consumer {
-  def apply(listener: ActorRef, autoAck: Boolean = false, channelConfig: Option[ChannelConfig] = None, provision: Seq[Request] = Seq.empty[Request]): Consumer =
+  def apply(listener: ActorRef, autoAck: Boolean = false, channelConfig: Option[ChannelConfig] = None, provision: Seq[RabbitRequest] = Seq.empty[RabbitRequest]): Consumer =
     new Consumer(listener, autoAck, channelConfig, provision) with AMQPRabbitFunctions with RequestHandler
 
-  def props(listener: ActorRef, autoAck: Boolean = false, channelConfig: Option[ChannelConfig] = None, provision: Seq[Request] = Seq.empty[Request]): Props =
+  def props(listener: ActorRef, autoAck: Boolean = false, channelConfig: Option[ChannelConfig] = None, provision: Seq[RabbitRequest] = Seq.empty[RabbitRequest]): Props =
     Props(Consumer(listener, autoAck, channelConfig, provision))
 }
 
@@ -19,9 +19,9 @@ object Consumer {
 class Consumer(listener: ActorRef,
                autoAck: Boolean = false,
                channelConfig: Option[ChannelConfig] = None,
-               provision: Seq[Request] = Seq.empty[Request]) extends ChannelKeeper(channelConfig, provision) {
+               provision: Seq[RabbitRequest] = Seq.empty[RabbitRequest]) extends ChannelKeeper(channelConfig, provision) {
   this: RabbitFunctions with RequestHandler =>
-  import com.coiney.akka.rabbit.messages._
+  import com.coiney.akka.rabbit.protocol._
 
   var consumer: Option[DefaultConsumer] = None
 
@@ -29,7 +29,7 @@ class Consumer(listener: ActorRef,
 
   def consumerConnected(channel: Channel, handler: ActorRef): Actor.Receive = {
     case req @ ConsumeQueue(queueConfig) => consumer match {
-      case None    => log.debug("Channel is not a consumer.")
+      case None    => log.debug("No consumer registered")
       case Some(c) =>
         sender ! handleRequest(req){ () =>
           val consumerTag = queueConsume(channel)(queueConfig, autoAck, c)
@@ -39,7 +39,7 @@ class Consumer(listener: ActorRef,
     }
 
     case req @ CancelConsume(consumerTag) => consumer match {
-      case None    => log.debug("Channel is not a consumer.")
+      case None    => log.debug("Channel is not a consumer")
       case Some(c) =>
         sender ! handleRequest(req){ () =>
           basicCancel(channel)(consumerTag)
@@ -47,8 +47,8 @@ class Consumer(listener: ActorRef,
     }
   }
 
-  override def channelCallback(channel: Channel): Unit = {
-    super.channelCallback(channel)
+  override def onChannel(channel: Channel): Unit = {
+    super.onChannel(channel)
     consumer = Some(addConsumer(channel)(listener, self))
   }
 

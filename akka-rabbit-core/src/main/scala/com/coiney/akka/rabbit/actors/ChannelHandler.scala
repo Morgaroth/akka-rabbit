@@ -18,7 +18,7 @@ private[rabbit] object ChannelHandler {
 private[rabbit] class ChannelHandler(channel: Channel) extends Actor
                                                        with ActorLogging {
   this: RabbitFunctions with RequestHandler =>
-  import com.coiney.akka.rabbit.messages._
+  import com.coiney.akka.rabbit.protocol._
 
   override def postStop(): Unit = Try {
     closeChannel(channel)

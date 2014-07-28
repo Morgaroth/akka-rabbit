@@ -5,7 +5,7 @@ import com.rabbitmq.client.Channel
 
 import com.coiney.akka.pattern.WatchingObservable
 import com.coiney.akka.rabbit.ChannelConfig
-import com.coiney.akka.rabbit.messages.Request
+import com.coiney.akka.rabbit.protocol.RabbitRequest
 
 
 object ChannelKeeper {
@@ -15,21 +15,21 @@ object ChannelKeeper {
   case object Connected extends State
   case object Disconnected extends State
 
-  def apply(channelConfig: Option[ChannelConfig] = None, provision: Seq[Request] = Seq.empty[Request]): ChannelKeeper =
+  def apply(channelConfig: Option[ChannelConfig] = None, provision: Seq[RabbitRequest] = Seq.empty[RabbitRequest]): ChannelKeeper =
     new ChannelKeeper(channelConfig, provision) with AMQPRabbitFunctions
 
-  def props(channelConfig: Option[ChannelConfig] = None, provision: Seq[Request] = Seq.empty[Request]): Props =
+  def props(channelConfig: Option[ChannelConfig] = None, provision: Seq[RabbitRequest] = Seq.empty[RabbitRequest]): Props =
     Props(ChannelKeeper(channelConfig, provision))
 }
 
 
 private[rabbit] class ChannelKeeper(channelConfig: Option[ChannelConfig] = None,
-                                    provision: Seq[Request] = Seq.empty[Request]) extends Actor
+                                    provision: Seq[RabbitRequest] = Seq.empty[RabbitRequest]) extends Actor
                                                                                   with WatchingObservable
                                                                                   with ActorLogging {
   this: RabbitFunctions =>
   import com.coiney.akka.rabbit.actors.ChannelKeeper._
-  import com.coiney.akka.rabbit.messages._
+  import com.coiney.akka.rabbit.protocol._
 
   override def preStart(): Unit = {
     context.parent ! ConnectionKeeper.GetChannel
@@ -46,34 +46,34 @@ private[rabbit] class ChannelKeeper(channelConfig: Option[ChannelConfig] = None,
 
   def disconnected: Actor.Receive =  {
     case HandleChannel(channel) =>
-      log.debug(s"received channel $channel")
+      log.debug(s"Received channel [$channel]")
       val handler = context.actorOf(ChannelHandler.props(channel), "handler")
       handler ! AddShutdownListener(self)
       handler ! AddReturnListener(self)
-      channelCallback(channel)
+      onChannel(channel)
       provision.foreach(request => self ! request)
       sendEvent(Connected)
       context.become(observeReceive(Some(Connected), None) orElse connected(channel, handler))
 
-    case req: Request =>
+    case req: RabbitRequest =>
       sender ! DisconnectedError(req)
   }
 
   def connected(channel: Channel, handler: ActorRef): Actor.Receive = {
-    case res: Response => ()
+    case res: RabbitResponse => ()
 
-    case req: Request =>
+    case req: RabbitRequest =>
       handler forward req
 
     case HandleShutdown(cause) if !cause.isInitiatedByApplication =>
-      log.error(cause, "The AMQP channel was lost")
+      log.error(cause, s"Lost the AMQP channel [$channel]")
       context.stop(handler)
       sendEvent(Disconnected)
       context.parent ! ConnectionKeeper.GetChannel
       context.become(observeReceive(None, None) orElse disconnected)
   }
 
-  def channelCallback(channel: Channel): Unit = {
+  def onChannel(channel: Channel): Unit = {
     channelConfig.foreach(cfg => configureChannel(channel)(cfg))
   }
 
