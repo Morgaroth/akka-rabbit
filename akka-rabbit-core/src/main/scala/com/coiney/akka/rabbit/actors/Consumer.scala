@@ -47,8 +47,8 @@ class Consumer(listener: ActorRef,
     }
   }
 
-  override def channelCallback(channel: Channel): Unit = {
-    super.channelCallback(channel)
+  override def onChannel(channel: Channel): Unit = {
+    super.onChannel(channel)
     consumer = Some(addConsumer(channel)(listener, self))
   }
 

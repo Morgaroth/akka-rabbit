@@ -50,7 +50,7 @@ private[rabbit] class ChannelKeeper(channelConfig: Option[ChannelConfig] = None,
       val handler = context.actorOf(ChannelHandler.props(channel), "handler")
       handler ! AddShutdownListener(self)
       handler ! AddReturnListener(self)
-      channelCallback(channel)
+      onChannel(channel)
       provision.foreach(request => self ! request)
       sendEvent(Connected)
       context.become(observeReceive(Some(Connected), None) orElse connected(channel, handler))
@@ -73,7 +73,7 @@ private[rabbit] class ChannelKeeper(channelConfig: Option[ChannelConfig] = None,
       context.become(observeReceive(None, None) orElse disconnected)
   }
 
-  def channelCallback(channel: Channel): Unit = {
+  def onChannel(channel: Channel): Unit = {
     channelConfig.foreach(cfg => configureChannel(channel)(cfg))
   }
 

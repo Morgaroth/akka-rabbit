@@ -38,8 +38,8 @@ class RPCServer(processor: RabbitRPCProcessor,
       rpcProcessor forward hd
   }
 
-  override def channelCallback(channel: Channel): Unit = {
-    super.channelCallback(channel)
+  override def onChannel(channel: Channel): Unit = {
+    super.onChannel(channel)
     consumer = Some(addConsumer(channel)(self, self))
   }
 
